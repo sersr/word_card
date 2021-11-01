@@ -1,0 +1,46 @@
+name: world_card
+description: world card.
+
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.15.0-250.0.dev <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  nop_db:
+    path: ../packages/nop_db
+  nop_annotations:
+    path: ../packages/nop_annotations
+  nop_db_sqlite:
+    path: ../packages/nop_db_sqlite
+  sqlite3_windows_dll:
+    path: ../packages/sqlite3_windows_dll
+  useful_tools:
+    path: ../packages/useful_tools
+  utils:
+    path: ../packages/utils
+  provider: ^6.0.1
+  hive: ^2.0.4
+  json_annotation: ^4.3.0
+  path: ^1.8.0
+  file: ^6.1.2
+  dio: ^4.0.1
+  archive: ^3.1.6
+  path_provider: ^2.0.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^1.0.0
+  nop_db_gen:
+    path: ../packages/nop_db_gen
+  build_runner: ^2.1.4
+  json_serializable: ^6.0.1
+
+flutter:
+  uses-material-design: true
