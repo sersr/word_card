@@ -19,8 +19,8 @@ class Words {
   @JsonKey(name: 'bookId')
   final String? bookId;
 
-  factory Words.fromJson(Map<String, dynamic> json) => _$WordsFromJson(json);
-  Map<String, dynamic> toJson() => _$WordsToJson(this);
+  factory Words.fromJson(Map<String,dynamic> json) => _$WordsFromJson(json);
+  Map<String,dynamic> toJson() => _$WordsToJson(this);
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -31,9 +31,8 @@ class WordsContent {
   @JsonKey(name: 'word')
   final WordsContentWord? word;
 
-  factory WordsContent.fromJson(Map<String, dynamic> json) =>
-      _$WordsContentFromJson(json);
-  Map<String, dynamic> toJson() => _$WordsContentToJson(this);
+  factory WordsContent.fromJson(Map<String,dynamic> json) => _$WordsContentFromJson(json);
+  Map<String,dynamic> toJson() => _$WordsContentToJson(this);
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -50,9 +49,8 @@ class WordsContentWord {
   @JsonKey(name: 'content')
   final WordsContentWordContent? content;
 
-  factory WordsContentWord.fromJson(Map<String, dynamic> json) =>
-      _$WordsContentWordFromJson(json);
-  Map<String, dynamic> toJson() => _$WordsContentWordToJson(this);
+  factory WordsContentWord.fromJson(Map<String,dynamic> json) => _$WordsContentWordFromJson(json);
+  Map<String,dynamic> toJson() => _$WordsContentWordToJson(this);
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -84,9 +82,8 @@ class WordsContentWordContent {
   @JsonKey(name: 'trans')
   final List<WordsContentWordContentTrans>? trans;
 
-  factory WordsContentWordContent.fromJson(Map<String, dynamic> json) =>
-      _$WordsContentWordContentFromJson(json);
-  Map<String, dynamic> toJson() => _$WordsContentWordContentToJson(this);
+  factory WordsContentWordContent.fromJson(Map<String,dynamic> json) => _$WordsContentWordContentFromJson(json);
+  Map<String,dynamic> toJson() => _$WordsContentWordContentToJson(this);
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -100,10 +97,8 @@ class WordsContentWordContentSentence {
   @JsonKey(name: 'desc')
   final String? desc;
 
-  factory WordsContentWordContentSentence.fromJson(Map<String, dynamic> json) =>
-      _$WordsContentWordContentSentenceFromJson(json);
-  Map<String, dynamic> toJson() =>
-      _$WordsContentWordContentSentenceToJson(this);
+  factory WordsContentWordContentSentence.fromJson(Map<String,dynamic> json) => _$WordsContentWordContentSentenceFromJson(json);
+  Map<String,dynamic> toJson() => _$WordsContentWordContentSentenceToJson(this);
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -117,12 +112,10 @@ class WordsContentWordContentSentenceSentences {
   @JsonKey(name: 'sCn')
   final String? sCn;
 
-  factory WordsContentWordContentSentenceSentences.fromJson(
-          Map<String, dynamic> json) =>
-      _$WordsContentWordContentSentenceSentencesFromJson(json);
-  Map<String, dynamic> toJson() =>
-      _$WordsContentWordContentSentenceSentencesToJson(this);
+  factory WordsContentWordContentSentenceSentences.fromJson(Map<String,dynamic> json) => _$WordsContentWordContentSentenceSentencesFromJson(json);
+  Map<String,dynamic> toJson() => _$WordsContentWordContentSentenceSentencesToJson(this);
 }
+
 
 @JsonSerializable(explicitToJson: true)
 class WordsContentWordContentTrans {
@@ -144,7 +137,7 @@ class WordsContentWordContentTrans {
   @JsonKey(name: 'tranOther')
   final String? tranOther;
 
-  factory WordsContentWordContentTrans.fromJson(Map<String, dynamic> json) =>
-      _$WordsContentWordContentTransFromJson(json);
-  Map<String, dynamic> toJson() => _$WordsContentWordContentTransToJson(this);
+  factory WordsContentWordContentTrans.fromJson(Map<String,dynamic> json) => _$WordsContentWordContentTransFromJson(json);
+  Map<String,dynamic> toJson() => _$WordsContentWordContentTransToJson(this);
 }
+

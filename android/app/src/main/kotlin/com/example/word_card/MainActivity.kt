@@ -1,4 +1,4 @@
-package com.example.world_card
+package com.example.word_card
 
 import io.flutter.embedding.android.FlutterActivity
 

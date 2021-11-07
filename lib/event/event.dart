@@ -14,9 +14,8 @@ Future<void> isolateDictEvent(List args) async {
   await eventImpl.init();
 
   rcPort.listen((message) {
-    Log.i('message: $message');
     if (eventImpl.resolve(message)) return;
     Log.e('error: $message', onlyDebug: false);
   });
-  sendPort.send(rcPort);
+  sendPort.send(rcPort.sendPort);
 }

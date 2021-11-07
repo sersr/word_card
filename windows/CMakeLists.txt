@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
-project(world_card LANGUAGES CXX)
+project(word_card LANGUAGES CXX)
 
-set(BINARY_NAME "world_card")
+set(BINARY_NAME "word_card")
 
 cmake_policy(SET CMP0063 NEW)
 

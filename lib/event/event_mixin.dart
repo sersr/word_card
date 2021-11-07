@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
+import 'dart:typed_data';
+import 'dart:isolate';
 
 import 'package:archive/archive.dart';
 import 'package:dio/dio.dart';
@@ -10,8 +12,7 @@ import 'package:path/path.dart';
 import 'package:useful_tools/common.dart';
 
 import '../api/api.dart';
-import '../data/book_lists.dart';
-import '../data/words.dart';
+import '../data/data.dart';
 import '../database/dict_database.dart';
 import 'event_base.dart';
 
@@ -99,12 +100,43 @@ class DictEventIsolate extends DictEventResolveMain with DatabaseMixin {
   }
 
   @override
-  FutureOr<BookListsData?> getDictLists() async {
+  FutureOr<BookCategoryDataNormalBooks?> getDictLists() async {
     try {
       final response = await dio.get<String>(Api.bookListsUrl());
       final data = response.data;
       if (data != null) {
-        return BookLists.fromJson(jsonDecode(data)).data;
+        final normalBooks =
+            BookCategory.fromJson(jsonDecode(data)).data?.normalBooks ??
+                const BookCategoryDataNormalBooks();
+
+        return normalBooks;
+      }
+    } catch (e) {
+      Log.e(e, onlyDebug: false);
+    }
+  }
+
+  @override
+  FutureOr<List<BookInfoDataNormalBooksInfo>?> getDictInfoLists(
+      List<String> body) async {
+    try {
+      final buffer = StringBuffer();
+      buffer
+        ..write('["')
+        ..write(body.join('","'))
+        ..write('"]');
+      final response =
+          await dio.post<String>(Api.bookWordsDataUrl(), queryParameters: {
+        'bookIds': buffer,
+        'reciteType': 'normal',
+      });
+      final data = response.data;
+      if (data != null) {
+        final normalBooks =
+            BookInfo.fromJson(jsonDecode(data)).data?.normalBooksInfo ??
+                const [];
+
+        return normalBooks;
       }
     } catch (e) {
       Log.e(e, onlyDebug: false);
@@ -136,6 +168,28 @@ class DictEventIsolate extends DictEventResolveMain with DatabaseMixin {
     });
     return hasData;
   }
+
+  @override
+  Future<Uint8List?> getImageSource(String url) async {
+    try {
+      final response = await dio.get<List<int>>(url,options: Options(responseType: ResponseType.bytes));
+      final responseData = response.data;
+      if (responseData != null) {
+        return Uint8List.fromList(responseData);
+      }
+    } catch (e) {
+      Log.e(e);
+    }
+  }
+
+  @override
+  getImageSourceDynamic(String url) {
+    return getImageSource(url).then((value) {
+      if (value != null) {
+        return TransferableTypedData.fromList([value]);
+      }
+    });
+  }
 }
 
 mixin DatabaseMixin on DictEvent {
@@ -154,6 +208,10 @@ mixin DatabaseMixin on DictEvent {
 
   @override
   FutureOr<List<DictTable>> getMainLists() {
-    return db.dictTable.query.all.goToTable;
+    return db.dictTable.query.all.where.show
+        .equalTo(true)
+        .back
+        .whereEnd
+        .goToTable;
   }
 }

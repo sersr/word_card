@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'dart:isolate';
+import 'dart:typed_data';
 import 'package:path_provider/path_provider.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:nop_db/nop_db.dart';
+import 'package:nop_db/extensions/future_or_ext.dart';
 import 'package:utils/event_queue.dart';
 
 import 'event.dart';
@@ -47,7 +50,7 @@ class Repository extends DictEventMessagerMain with SendEventPortMixin {
     final appPath = await getApplicationDocumentsDirectory();
     final rcPort = ReceivePort();
     final newIsolate =
-        await Isolate.spawn(isolateDictEvent, [rcPort.sendPort, appPath]);
+        await Isolate.spawn(isolateDictEvent, [rcPort.sendPort, appPath.path]);
     await onDone(rcPort);
     isolate = newIsolate;
   }
@@ -71,4 +74,17 @@ class Repository extends DictEventMessagerMain with SendEventPortMixin {
     _isolate = null;
     super.dispose();
   }
+
+  @override
+  Future<Uint8List?> getImageSource(String url) async {
+    final data = await getImageSourceDynamic(url);
+    if (data is ByteBuffer) {
+      return data.asUint8List();
+    } else if (data is Uint8List) {
+      return data;
+    }
+  }
+
+  /// Impl
+
 }

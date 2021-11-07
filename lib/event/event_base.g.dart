@@ -8,10 +8,12 @@ part of 'event_base.dart';
 
 enum DictEventMessage {
   getDictLists,
+  getDictInfoLists,
   getWordsState,
   downloadDict,
   getWordsData,
-  getMainLists
+  getMainLists,
+  getImageSource
 }
 
 abstract class DictEventResolveMain extends DictEvent
@@ -26,13 +28,20 @@ abstract class DictEventResolveMain extends DictEvent
 
 abstract class DictEventMessagerMain extends DictEvent with DictEventMessager {}
 
-mixin DictEventResolve on Resolve, DictEvent {
+/// implements [DictEvent]
+abstract class DictEventDynamic {
+  dynamic getImageSourceDynamic(String url);
+}
+
+mixin DictEventResolve on Resolve, DictEvent implements DictEventDynamic {
   late final _dictEventResolveFuncList = List<DynamicCallback>.unmodifiable([
     _getDictLists_0,
-    _getWordsState_1,
-    _downloadDict_2,
-    _getWordsData_3,
-    _getMainLists_4
+    _getDictInfoLists_1,
+    _getWordsState_2,
+    _downloadDict_3,
+    _getWordsData_4,
+    _getMainLists_5,
+    _getImageSource_6
   ]);
 
   @override
@@ -54,19 +63,28 @@ mixin DictEventResolve on Resolve, DictEvent {
     return super.resolve(resolveMessage);
   }
 
-  FutureOr<BookListsData?> _getDictLists_0(args) => getDictLists();
-  FutureOr<bool?> _getWordsState_1(args) => getWordsState(args);
-  Stream<int> _downloadDict_2(args) => downloadDict(args[0], args[1]);
-  FutureOr<List<Words>?> _getWordsData_3(args) => getWordsData(args);
-  FutureOr<List<DictTable>?> _getMainLists_4(args) => getMainLists();
+  FutureOr<BookCategoryDataNormalBooks?> _getDictLists_0(args) =>
+      getDictLists();
+  FutureOr<List<BookInfoDataNormalBooksInfo>?> _getDictInfoLists_1(args) =>
+      getDictInfoLists(args);
+  FutureOr<bool?> _getWordsState_2(args) => getWordsState(args);
+  Stream<int> _downloadDict_3(args) => downloadDict(args[0], args[1]);
+  FutureOr<List<Words>?> _getWordsData_4(args) => getWordsData(args);
+  FutureOr<List<DictTable>?> _getMainLists_5(args) => getMainLists();
+  dynamic _getImageSource_6(args) => getImageSourceDynamic(args);
 }
 
 /// implements [DictEvent]
 mixin DictEventMessager {
   SendEvent get sendEvent;
 
-  FutureOr<BookListsData?> getDictLists() async {
+  FutureOr<BookCategoryDataNormalBooks?> getDictLists() async {
     return sendEvent.sendMessage(DictEventMessage.getDictLists, null);
+  }
+
+  FutureOr<List<BookInfoDataNormalBooksInfo>?> getDictInfoLists(
+      List<String> body) async {
+    return sendEvent.sendMessage(DictEventMessage.getDictInfoLists, body);
   }
 
   FutureOr<bool?> getWordsState(String id) async {
@@ -84,5 +102,9 @@ mixin DictEventMessager {
 
   FutureOr<List<DictTable>?> getMainLists() async {
     return sendEvent.sendMessage(DictEventMessage.getMainLists, null);
+  }
+
+  dynamic getImageSourceDynamic(String url) async {
+    return sendEvent.sendMessage(DictEventMessage.getImageSource, url);
   }
 }

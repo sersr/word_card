@@ -6,7 +6,7 @@ import 'package:nop_annotations/nop_annotations.dart';
 import 'package:nop_db/nop_db.dart';
 part 'dict_database.g.dart';
 
-class DictTable extends Table {
+class DictTable extends Table implements Comparable<DictTable> {
   DictTable({
     this.dictId,
     this.id,
@@ -30,6 +30,13 @@ class DictTable extends Table {
   @override
   Map<String, dynamic> toJson() {
     return _DictTable_toJson(this);
+  }
+
+  @override
+  int compareTo(DictTable other) {
+    final otherKey = other.sortKey;
+    if (sortKey == null || otherKey == null) return 0;
+    return otherKey - sortKey!;
   }
 }
 

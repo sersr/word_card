@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:useful_tools/common.dart';
+import 'package:word_card/event/repository.dart';
+import 'package:word_card/provider/home_list.dart';
+
+import 'home.dart';
 
 class WorldCard extends StatefulWidget {
   const WorldCard({Key? key}) : super(key: key);
@@ -10,7 +16,7 @@ class WorldCard extends StatefulWidget {
 class _WorldCardState extends State<WorldCard> {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(home: Container());
+    return MaterialApp(home: const HomeApp());
   }
 }
 
@@ -20,6 +26,13 @@ class AllProviders extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const WorldCard();
+    return MultiProvider(providers: [
+      Provider(create: (_) {
+        Log.i('create');
+        return Repository();
+      }),
+      ChangeNotifierProvider(
+          create: (context) => HomeListNotifier(repository: context.read())),
+    ], child: const WorldCard());
   }
 }

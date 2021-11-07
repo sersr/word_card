@@ -23,88 +23,51 @@ class BookLists {
 @JsonSerializable(explicitToJson: true)
 class BookListsData {
   const BookListsData({
-    this.normalBooksInfo,
+    this.listBooksInfo,
   });
-  @JsonKey(name: 'normalBooksInfo')
-  final List<BookListsDataNormalBooksInfo>? normalBooksInfo;
+  @JsonKey(name: 'listBooksInfo')
+  final List<BookListsDataListBooksInfo>? listBooksInfo;
 
   factory BookListsData.fromJson(Map<String,dynamic> json) => _$BookListsDataFromJson(json);
   Map<String,dynamic> toJson() => _$BookListsDataToJson(this);
 }
 
 @JsonSerializable(explicitToJson: true)
-class BookListsDataNormalBooksInfo {
-  const BookListsDataNormalBooksInfo({
+class BookListsDataListBooksInfo {
+  const BookListsDataListBooksInfo({
     this.cover,
-    this.bookOrigin,
-    this.size,
+    this.wordsNum,
     this.introduce,
-    this.wordNum,
+    this.versionTs,
     this.reciteUserNum,
-    this.id,
-    this.title,
-    this.offlinedata,
-    this.version,
+    this.bookName,
+    this.creatorAvatar,
+    this.creatorNickName,
+    this.bookId,
     this.tags,
   });
   @JsonKey(name: 'cover')
   final String? cover;
-  @JsonKey(name: 'bookOrigin')
-  final BookListsDataNormalBooksInfoBookOrigin? bookOrigin;
-  @JsonKey(name: 'size')
-  final int? size;
+  @JsonKey(name: 'wordsNum')
+  final int? wordsNum;
   @JsonKey(name: 'introduce')
   final String? introduce;
-  @JsonKey(name: 'wordNum')
-  final int? wordNum;
+  @JsonKey(name: 'versionTs')
+  final int? versionTs;
   @JsonKey(name: 'reciteUserNum')
   final int? reciteUserNum;
-  @JsonKey(name: 'id')
-  final String? id;
-  @JsonKey(name: 'title')
-  final String? title;
-  @JsonKey(name: 'offlinedata')
-  final String? offlinedata;
-  @JsonKey(name: 'version')
-  final String? version;
+  @JsonKey(name: 'bookName')
+  final String? bookName;
+  @JsonKey(name: 'creatorAvatar')
+  final String? creatorAvatar;
+  @JsonKey(name: 'creatorNickName')
+  final String? creatorNickName;
+  @JsonKey(name: 'bookId')
+  final String? bookId;
   @JsonKey(name: 'tags')
-  final List<BookListsDataNormalBooksInfoTags>? tags;
+  final List<String>? tags;
 
-  factory BookListsDataNormalBooksInfo.fromJson(Map<String,dynamic> json) => _$BookListsDataNormalBooksInfoFromJson(json);
-  Map<String,dynamic> toJson() => _$BookListsDataNormalBooksInfoToJson(this);
-}
-
-@JsonSerializable(explicitToJson: true)
-class BookListsDataNormalBooksInfoBookOrigin {
-  const BookListsDataNormalBooksInfoBookOrigin({
-    this.originUrl,
-    this.desc,
-    this.originName,
-  });
-  @JsonKey(name: 'originUrl')
-  final String? originUrl;
-  @JsonKey(name: 'desc')
-  final String? desc;
-  @JsonKey(name: 'originName')
-  final String? originName;
-
-  factory BookListsDataNormalBooksInfoBookOrigin.fromJson(Map<String,dynamic> json) => _$BookListsDataNormalBooksInfoBookOriginFromJson(json);
-  Map<String,dynamic> toJson() => _$BookListsDataNormalBooksInfoBookOriginToJson(this);
-}
-
-
-@JsonSerializable(explicitToJson: true)
-class BookListsDataNormalBooksInfoTags {
-  const BookListsDataNormalBooksInfoTags({
-    this.tagName,
-    this.tagUrl,
-  });
-  @JsonKey(name: 'tagName')
-  final String? tagName;
-  @JsonKey(name: 'tagUrl')
-  final String? tagUrl;
-
-  factory BookListsDataNormalBooksInfoTags.fromJson(Map<String,dynamic> json) => _$BookListsDataNormalBooksInfoTagsFromJson(json);
-  Map<String,dynamic> toJson() => _$BookListsDataNormalBooksInfoTagsToJson(this);
+  factory BookListsDataListBooksInfo.fromJson(Map<String,dynamic> json) => _$BookListsDataListBooksInfoFromJson(json);
+  Map<String,dynamic> toJson() => _$BookListsDataListBooksInfoToJson(this);
 }
 

@@ -22,83 +22,43 @@ Map<String, dynamic> _$BookListsToJson(BookLists instance) => <String, dynamic>{
 
 BookListsData _$BookListsDataFromJson(Map<String, dynamic> json) =>
     BookListsData(
-      normalBooksInfo: (json['normalBooksInfo'] as List<dynamic>?)
+      listBooksInfo: (json['listBooksInfo'] as List<dynamic>?)
           ?.map((e) =>
-              BookListsDataNormalBooksInfo.fromJson(e as Map<String, dynamic>))
+              BookListsDataListBooksInfo.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 
 Map<String, dynamic> _$BookListsDataToJson(BookListsData instance) =>
     <String, dynamic>{
-      'normalBooksInfo':
-          instance.normalBooksInfo?.map((e) => e.toJson()).toList(),
+      'listBooksInfo': instance.listBooksInfo?.map((e) => e.toJson()).toList(),
     };
 
-BookListsDataNormalBooksInfo _$BookListsDataNormalBooksInfoFromJson(
+BookListsDataListBooksInfo _$BookListsDataListBooksInfoFromJson(
         Map<String, dynamic> json) =>
-    BookListsDataNormalBooksInfo(
+    BookListsDataListBooksInfo(
       cover: json['cover'] as String?,
-      bookOrigin: json['bookOrigin'] == null
-          ? null
-          : BookListsDataNormalBooksInfoBookOrigin.fromJson(
-              json['bookOrigin'] as Map<String, dynamic>),
-      size: json['size'] as int?,
+      wordsNum: json['wordsNum'] as int?,
       introduce: json['introduce'] as String?,
-      wordNum: json['wordNum'] as int?,
+      versionTs: json['versionTs'] as int?,
       reciteUserNum: json['reciteUserNum'] as int?,
-      id: json['id'] as String?,
-      title: json['title'] as String?,
-      offlinedata: json['offlinedata'] as String?,
-      version: json['version'] as String?,
-      tags: (json['tags'] as List<dynamic>?)
-          ?.map((e) => BookListsDataNormalBooksInfoTags.fromJson(
-              e as Map<String, dynamic>))
-          .toList(),
+      bookName: json['bookName'] as String?,
+      creatorAvatar: json['creatorAvatar'] as String?,
+      creatorNickName: json['creatorNickName'] as String?,
+      bookId: json['bookId'] as String?,
+      tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
     );
 
-Map<String, dynamic> _$BookListsDataNormalBooksInfoToJson(
-        BookListsDataNormalBooksInfo instance) =>
+Map<String, dynamic> _$BookListsDataListBooksInfoToJson(
+        BookListsDataListBooksInfo instance) =>
     <String, dynamic>{
       'cover': instance.cover,
-      'bookOrigin': instance.bookOrigin?.toJson(),
-      'size': instance.size,
+      'wordsNum': instance.wordsNum,
       'introduce': instance.introduce,
-      'wordNum': instance.wordNum,
+      'versionTs': instance.versionTs,
       'reciteUserNum': instance.reciteUserNum,
-      'id': instance.id,
-      'title': instance.title,
-      'offlinedata': instance.offlinedata,
-      'version': instance.version,
-      'tags': instance.tags?.map((e) => e.toJson()).toList(),
-    };
-
-BookListsDataNormalBooksInfoBookOrigin
-    _$BookListsDataNormalBooksInfoBookOriginFromJson(
-            Map<String, dynamic> json) =>
-        BookListsDataNormalBooksInfoBookOrigin(
-          originUrl: json['originUrl'] as String?,
-          desc: json['desc'] as String?,
-          originName: json['originName'] as String?,
-        );
-
-Map<String, dynamic> _$BookListsDataNormalBooksInfoBookOriginToJson(
-        BookListsDataNormalBooksInfoBookOrigin instance) =>
-    <String, dynamic>{
-      'originUrl': instance.originUrl,
-      'desc': instance.desc,
-      'originName': instance.originName,
-    };
-
-BookListsDataNormalBooksInfoTags _$BookListsDataNormalBooksInfoTagsFromJson(
-        Map<String, dynamic> json) =>
-    BookListsDataNormalBooksInfoTags(
-      tagName: json['tagName'] as String?,
-      tagUrl: json['tagUrl'] as String?,
-    );
-
-Map<String, dynamic> _$BookListsDataNormalBooksInfoTagsToJson(
-        BookListsDataNormalBooksInfoTags instance) =>
-    <String, dynamic>{
-      'tagName': instance.tagName,
-      'tagUrl': instance.tagUrl,
+      'bookName': instance.bookName,
+      'creatorAvatar': instance.creatorAvatar,
+      'creatorNickName': instance.creatorNickName,
+      'bookId': instance.bookId,
+      'tags': instance.tags,
     };

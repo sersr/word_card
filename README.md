@@ -1,3 +1,3 @@
-# world_card
+# word_card
 
 英语单词卡片
