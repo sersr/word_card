@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:provider/src/provider.dart';
+import 'package:provider/provider.dart';
 import 'package:useful_tools/useful_tools.dart';
-import 'package:word_card/data/data.dart';
-import 'package:word_card/event/repository.dart';
-import 'package:word_card/provider/book_library.dart';
-import 'package:useful_tools/ui_config.dart';
+
+import '../data/data.dart';
+import '../event/repository.dart';
+import '../provider/book_library.dart';
+import '../widgets/search_fake.dart';
 
 class BookLibrary extends StatefulWidget {
   const BookLibrary({Key? key}) : super(key: key);
@@ -44,9 +45,27 @@ class _BookLibraryState extends State<BookLibrary> {
           var count = data.length + 1;
           final hasTags = tags != null;
           if (hasTags) count += 1;
+
           return Column(
             children: [
-              Container(height: 56, color: Colors.blue),
+              Container(
+                height: 56,
+                color: Colors.blue,
+                child: const SearchFake(hint: '查找单词书'),
+                // child: Row(
+                //   children: [
+                //     btn1(
+                //       onTap: () => Navigator.maybePop(context),
+                //       padding: const EdgeInsets.only(left: 6, right: 12),
+                //       child: const Icon(
+                //         Icons.arrow_back_ios,
+                //         color: Color.fromRGBO(120, 120, 120, 1),
+                //       ),
+                //     ),
+                //     const Expanded(child: ),
+                //   ],
+                // ),
+              ),
               Expanded(
                 child: ListViewBuilder(
                   itemCount: count,
@@ -77,7 +96,7 @@ class _BookLibraryState extends State<BookLibrary> {
                                           horizontal: 10, vertical: 6),
                                       child: Text('${item.name}',
                                           style: TextStyle(
-                                              fontSize: 15,
+                                              fontSize: 14,
                                               color: libraryNotifier
                                                       .eqCate(item.name)
                                                   ? Colors.green
@@ -129,7 +148,8 @@ class _BookLibraryState extends State<BookLibrary> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 6, vertical: 4),
-                          child: ImageItemLayout(info: item),
+                          child: ImageItemLayout(
+                              info: item, notifier: libraryNotifier),
                         ));
                   },
                 ),
@@ -141,29 +161,69 @@ class _BookLibraryState extends State<BookLibrary> {
 }
 
 class ImageItemLayout extends StatelessWidget {
-  const ImageItemLayout({Key? key, required this.info}) : super(key: key);
+  const ImageItemLayout({Key? key, required this.info, required this.notifier})
+      : super(key: key);
   final BookInfoDataNormalBooksInfo info;
+  final BookLibraryNotifier notifier;
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 180,
+      height: 90,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(
-            child: ImageBuilder(url: info.cover),
-            width: 134,
+            child: ImageBuilder(url: info.cover,height: 90,width: 67),
+            width: 67,
           ),
-          Padding(
-            padding: const EdgeInsets.only(left: 8.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('${info.title}'),
-                Text('${info.tags?.map((e) => e.tagName).join()}')
-              ],
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                      child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('${info.title}'),
+                      Text('${info.tags?.map((e) => e.tagName).join()}'),
+                    ],
+                  )),
+                  Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        child: btn1(
+                          bgColor: Colors.cyan,
+                          radius: 8,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 4),
+                          child: const Center(child: Text('下载')),
+                          onTap: () {
+                            notifier.download(info.id, info.offlinedata);
+                          },
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        child: btn1(
+                          bgColor: Colors.cyan,
+                          radius: 8,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 4),
+                          child: const Center(child: Text('添加到学习任务中')),
+                          onTap: () {
+                            notifier.addDict(info);
+                          },
+                        ),
+                      )
+                    ],
+                  )
+                ],
+              ),
             ),
           )
         ],
@@ -173,8 +233,10 @@ class ImageItemLayout extends StatelessWidget {
 }
 
 class ImageBuilder extends StatefulWidget {
-  const ImageBuilder({Key? key, this.url}) : super(key: key);
+  const ImageBuilder({Key? key, this.url,required this.height,required this.width}) : super(key: key);
   final String? url;
+  final double height;
+  final double width;
   @override
   _ImageBuilderState createState() => _ImageBuilderState();
 }
@@ -199,7 +261,7 @@ class _ImageBuilderState extends State<ImageBuilder> {
           }
           return repository.event.getImageSource(url);
         },
-        height: 180,
-        width: 134);
+        height: widget.height,
+        width: widget.width);
   }
 }

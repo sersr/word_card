@@ -2,7 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'words.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class Words {
   const Words({
     this.wordRank,

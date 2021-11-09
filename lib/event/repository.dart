@@ -1,11 +1,10 @@
 import 'dart:async';
 import 'dart:isolate';
 import 'dart:typed_data';
-import 'package:path_provider/path_provider.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:nop_db/nop_db.dart';
-import 'package:nop_db/extensions/future_or_ext.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:utils/event_queue.dart';
 
 import 'event.dart';

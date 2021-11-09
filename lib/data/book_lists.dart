@@ -2,7 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'book_lists.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class BookLists {
   const BookLists({
     this.reason,
@@ -65,7 +65,7 @@ class BookListsDataListBooksInfo {
   @JsonKey(name: 'bookId')
   final String? bookId;
   @JsonKey(name: 'tags')
-  final List<String>? tags;
+  final List<dynamic>? tags;
 
   factory BookListsDataListBooksInfo.fromJson(Map<String,dynamic> json) => _$BookListsDataListBooksInfoFromJson(json);
   Map<String,dynamic> toJson() => _$BookListsDataListBooksInfoToJson(this);

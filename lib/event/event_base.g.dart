@@ -13,7 +13,10 @@ enum DictEventMessage {
   downloadDict,
   getWordsData,
   getMainLists,
-  getImageSource
+  watchDictLists,
+  getImageSource,
+  addDict,
+  updateDict
 }
 
 abstract class DictEventResolveMain extends DictEvent
@@ -41,7 +44,10 @@ mixin DictEventResolve on Resolve, DictEvent implements DictEventDynamic {
     _downloadDict_3,
     _getWordsData_4,
     _getMainLists_5,
-    _getImageSource_6
+    _watchDictLists_6,
+    _getImageSource_7,
+    _addDict_8,
+    _updateDict_9
   ]);
 
   @override
@@ -68,10 +74,13 @@ mixin DictEventResolve on Resolve, DictEvent implements DictEventDynamic {
   FutureOr<List<BookInfoDataNormalBooksInfo>?> _getDictInfoLists_1(args) =>
       getDictInfoLists(args);
   FutureOr<bool?> _getWordsState_2(args) => getWordsState(args);
-  Stream<int> _downloadDict_3(args) => downloadDict(args[0], args[1]);
-  FutureOr<List<Words>?> _getWordsData_4(args) => getWordsData(args);
+  FutureOr<int?> _downloadDict_3(args) => downloadDict(args[0], args[1]);
+  Stream<List<Words>> _getWordsData_4(args) => getWordsData(args);
   FutureOr<List<DictTable>?> _getMainLists_5(args) => getMainLists();
-  dynamic _getImageSource_6(args) => getImageSourceDynamic(args);
+  Stream<List<DictTable>> _watchDictLists_6(args) => watchDictLists();
+  dynamic _getImageSource_7(args) => getImageSourceDynamic(args);
+  FutureOr<int?> _addDict_8(args) => addDict(args);
+  FutureOr<int?> _updateDict_9(args) => updateDict(args[0], args[1]);
 }
 
 /// implements [DictEvent]
@@ -91,20 +100,31 @@ mixin DictEventMessager {
     return sendEvent.sendMessage(DictEventMessage.getWordsState, id);
   }
 
-  Stream<int> downloadDict(String id, String url) {
-    return sendEvent
-        .sendMessageStream(DictEventMessage.downloadDict, [id, url]);
+  FutureOr<int?> downloadDict(String id, String url) async {
+    return sendEvent.sendMessage(DictEventMessage.downloadDict, [id, url]);
   }
 
-  FutureOr<List<Words>?> getWordsData(String id) async {
-    return sendEvent.sendMessage(DictEventMessage.getWordsData, id);
+  Stream<List<Words>> getWordsData(String id) {
+    return sendEvent.sendMessageStream(DictEventMessage.getWordsData, id);
   }
 
   FutureOr<List<DictTable>?> getMainLists() async {
     return sendEvent.sendMessage(DictEventMessage.getMainLists, null);
   }
 
+  Stream<List<DictTable>> watchDictLists() {
+    return sendEvent.sendMessageStream(DictEventMessage.watchDictLists, null);
+  }
+
   dynamic getImageSourceDynamic(String url) async {
     return sendEvent.sendMessage(DictEventMessage.getImageSource, url);
+  }
+
+  FutureOr<int?> addDict(DictTable dict) async {
+    return sendEvent.sendMessage(DictEventMessage.addDict, dict);
+  }
+
+  FutureOr<int?> updateDict(String dictId, DictTable dict) async {
+    return sendEvent.sendMessage(DictEventMessage.updateDict, [dictId, dict]);
   }
 }

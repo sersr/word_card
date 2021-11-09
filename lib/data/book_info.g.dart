@@ -17,7 +17,7 @@ BookInfo _$BookInfoFromJson(Map<String, dynamic> json) => BookInfo(
 Map<String, dynamic> _$BookInfoToJson(BookInfo instance) => <String, dynamic>{
       'reason': instance.reason,
       'code': instance.code,
-      'data': instance.data,
+      'data': instance.data?.toJson(),
     };
 
 BookInfoData _$BookInfoDataFromJson(Map<String, dynamic> json) => BookInfoData(

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:useful_tools/useful_tools.dart';
-
+import 'dart:math' as math;
 import '../provider/home_list.dart';
+import '../widgets/search_fake.dart';
 import 'book_library.dart';
+import 'word_card.dart';
 
 class HomeApp extends StatefulWidget {
   const HomeApp({Key? key}) : super(key: key);
@@ -14,7 +16,7 @@ class HomeApp extends StatefulWidget {
 
 class _HomeAppState extends State<HomeApp> {
   late HomeListNotifier provider;
-
+  final scrollController = ScrollController();
   bool first = true;
   @override
   void didChangeDependencies() {
@@ -23,6 +25,7 @@ class _HomeAppState extends State<HomeApp> {
     if (first) {
       first = false;
       provider.repository.init();
+      provider.load();
     }
   }
 
@@ -36,40 +39,7 @@ class _HomeAppState extends State<HomeApp> {
           padding: const EdgeInsets.symmetric(horizontal: 6),
           child: Row(
             children: [
-              Expanded(
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-                  child: GestureDetector(
-                    onTap: () {},
-                    child: Container(
-                      child: SizedBox.expand(
-                        child: Row(children: [
-                          Padding(
-                            padding: const EdgeInsets.only(left: 8),
-                            child: Icon(
-                              Icons.search_rounded,
-                              color: Colors.grey.shade500,
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 4),
-                            child: Text(
-                              '查询英文或中文',
-                              style: TextStyle(
-                                  fontSize: 16, color: Colors.grey.shade500),
-                            ),
-                          ),
-                        ]),
-                      ),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(30),
-                        color: Color.fromRGBO(235, 235, 240, 1),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+              const Expanded(child: SearchFake(hint: '查询中文或英文')),
               Container(
                 padding: const EdgeInsets.only(left: 6, right: 12),
                 child: const Icon(
@@ -84,19 +54,68 @@ class _HomeAppState extends State<HomeApp> {
             child: AnimatedBuilder(
                 animation: provider,
                 builder: (context, _) {
+                  final proViderdata = provider.data;
+                  final data = proViderdata?.data;
+                  if (proViderdata == null) {
+                    return loadingIndicator();
+                  } else if (data == null) {
+                    // ignore: prefer_const_constructors
+                    return Center(child: Text('从书库中添加单词书'));
+                  }
                   return ListViewBuilder(
-                    scrollController: ScrollController(),
-                    color: Colors.blue,
-                    itemCount: 50,
+                    scrollController: scrollController,
+                    itemCount: data.length,
                     itemBuilder: (context, index) {
-                      return Container(
-                          color: index.isOdd ? Colors.cyan : Colors.deepPurple,
-                          height: 50);
+                      final item = data[index];
+                      final wordCount = item.dataIndex?.length ?? 0;
+                      final wordIndex =
+                          math.min(wordCount, item.wordIndex ?? 0);
+                      final progress = wordIndex == 0 || wordCount == 0
+                          ? 0.0
+                          : wordIndex / wordCount;
+                      return ListItem(
+                          onTap: () {
+                            final id = item.dictId;
+                            final currentIndex = item.wordIndex;
+                            if (id != null && currentIndex != null) {
+                              Navigator.push(context,
+                                  MaterialPageRoute(builder: (context) {
+                                return WordCardProvider(
+                                    id: id, currentIndex: currentIndex);
+                              }));
+                            }
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 8),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('${item.name}'),
+                                const SizedBox(height: 20),
+                                Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                            child: Text(
+                                                '已完成${progress.toStringAsFixed(2)}%')),
+                                        Text('$wordIndex/$wordCount词'),
+                                      ],
+                                    ),
+                                    LinearProgressIndicator(value: progress),
+                                  ],
+                                )
+                              ],
+                            ),
+                          ));
                     },
                   );
                 })),
       ],
     );
+    // ignore: prefer_const_constructors
     final children = [main, BookLibrary()];
     return Scaffold(
       body: SafeArea(
@@ -128,6 +147,9 @@ class _HomeAppState extends State<HomeApp> {
 
   ValueNotifier<int> notifier = ValueNotifier(0);
   void changed(index) {
+    if (notifier.value == index && index == 0) {
+      provider.load();
+    }
     notifier.value = index;
   }
 }

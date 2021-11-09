@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:isolate';
 
@@ -8,6 +7,7 @@ import 'package:archive/archive.dart';
 import 'package:dio/dio.dart';
 import 'package:file/local.dart';
 import 'package:hive/hive.dart';
+import 'package:nop_db/extensions/future_or_ext.dart';
 import 'package:path/path.dart';
 import 'package:useful_tools/common.dart';
 
@@ -27,7 +27,7 @@ Future<void> _beginHive(
     final box = await Hive.openBox('dictHive');
     await run(box);
     await box.close();
-  } catch (e) {
+  } on HiveError catch (e) {
     Log.e('在当前隔离中可能没有初始化\n`Hive.init(path);`', onlyDebug: false);
     Log.e(e, onlyDebug: false);
   }
@@ -52,17 +52,18 @@ class DictEventIsolate extends DictEventResolveMain with DatabaseMixin {
   }
 
   @override
-  Stream<int> downloadDict(String id, String url) async* {
-    if (await getWordsState(id)) return;
+  FutureOr<int?> downloadDict(String id, String url) async {
+    Log.i('start');
+    if (await getWordsState(id)) return null;
 
-    final streamController = StreamController<int>();
-    yield* streamController.stream;
+    // final streamController = StreamController<int>();
+    // yield* streamController.stream;
     try {
-      final respone =
-          await dio.get<List<int>>(url, onReceiveProgress: (count, total) {
+      final respone = await dio.get<List<int>>(url,
+          options: Options(responseType: ResponseType.bytes),
+          onReceiveProgress: (count, total) {
         if (total == 0) return;
-        final progress = count / total * 100;
-        streamController.add(math.min(progress.toInt(), 100));
+        // yield math.min(progress.toInt(), 100);
       });
 
       final zipData = respone.data;
@@ -74,11 +75,14 @@ class DictEventIsolate extends DictEventResolveMain with DatabaseMixin {
             final divDatas = utf8Data.split('\n');
             final listData = [];
             for (var d in divDatas) {
-              final data = jsonDecode(d);
-              listData.add(data);
+              if (d.isNotEmpty) {
+                // final data = jsonDecode(d);
+                listData.add(d);
+              }
             }
             if (listData.isNotEmpty) {
               await beginDict((box) async {
+                Log.i('data');
                 if (box.get(id) == null) {
                   return box.put(id, listData);
                 }
@@ -93,8 +97,9 @@ class DictEventIsolate extends DictEventResolveMain with DatabaseMixin {
     } catch (e) {
       Log.e(e);
     } finally {
+      Log.i('close');
       // if (!streamController.isPaused) {
-      streamController.close();
+      // streamController.close();
       // }
     }
   }
@@ -144,20 +149,45 @@ class DictEventIsolate extends DictEventResolveMain with DatabaseMixin {
   }
 
   @override
-  FutureOr<List<Words>?> getWordsData(String id) async {
-    final List<Words> wordsData = [];
-    await beginDict((box) async {
-      final data = box.get(id);
-      if (data is List<Map<String, Object?>>) {
-        for (var item in data) {
-          final word = Words.fromJson(item);
-          wordsData.add(word);
+  Stream<List<Words>> getWordsData(String id) {
+    // final List<Words> wordsData = [];
+    final stream = StreamController<List<Words>>.broadcast(sync: true);
+    Timer.run(() async {
+      // start
+      // stream.add(const Words());
+      await beginDict((box) async {
+        final data = box.get(id);
+        // await box.delete(id);
+        if (data is List) {
+          Log.i('item is Map');
+          final cache = <Words>[];
+          for (var item in data) {
+            if (item is String) {
+              final map = jsonDecode(item);
+              final word = Words.fromJson(map);
+              cache.add(word);
+
+              // wordsData.add(word);
+            }
+            if (cache.length >= 40) {
+              final _cache = List.of(cache);
+              cache.clear();
+              stream.add(_cache);
+            }
+          }
+          if (cache.isNotEmpty) {
+            final _cache = List.of(cache);
+            cache.clear();
+            stream.add(_cache);
+          }
+          return;
         }
-        return;
-      }
-      Log.i('this data: $data');
+      });
+      Log.i(' close.${stream.hasListener}');
+      await stream.close();
+      Log.i(' closeeee.');
     });
-    return wordsData;
+    return stream.stream;
   }
 
   @override
@@ -172,7 +202,8 @@ class DictEventIsolate extends DictEventResolveMain with DatabaseMixin {
   @override
   Future<Uint8List?> getImageSource(String url) async {
     try {
-      final response = await dio.get<List<int>>(url,options: Options(responseType: ResponseType.bytes));
+      final response = await dio.get<List<int>>(url,
+          options: Options(responseType: ResponseType.bytes));
       final responseData = response.data;
       if (responseData != null) {
         return Uint8List.fromList(responseData);
@@ -213,5 +244,42 @@ mixin DatabaseMixin on DictEvent {
         .back
         .whereEnd
         .goToTable;
+  }
+
+  @override
+  Stream<List<DictTable>> watchDictLists() {
+    return db.dictTable.query.all.where.show
+        .equalTo(true)
+        .back
+        .whereEnd
+        .watchToTable;
+  }
+
+  @override
+  FutureOr<int?> addDict(DictTable dict) {
+    assert(dict.dictId != null);
+    final queryCount = db.dictTable.query
+      ..select.count.all
+      ..where.dictId.equalTo(dict.dictId!);
+    return queryCount.go.then((v) {
+      var count = 0;
+      try {
+        final first = v.first.values.first;
+        if (first is int) {
+          count = first;
+        }
+      } catch (e) {
+        Log.w(e);
+      }
+      if (count > 0) return -1;
+      return db.dictTable.insert.insertTable(dict).go;
+    });
+  }
+
+  @override
+  FutureOr<int?> updateDict(String dictId, DictTable dict) {
+    final update = db.dictTable.update..where.dictId.equalTo(dictId);
+    db.dictTable.updateDictTable(update, dict);
+    return update.go;
   }
 }

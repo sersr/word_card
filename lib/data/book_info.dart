@@ -2,7 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'book_info.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class BookInfo {
   const BookInfo({
     this.reason,

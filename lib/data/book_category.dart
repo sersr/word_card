@@ -2,7 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'book_category.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class BookCategory {
   const BookCategory({
     this.reason,
@@ -59,7 +59,7 @@ class BookCategoryDataNormalBooksCateNames {
   @JsonKey(name: 'name')
   final String? name;
   @JsonKey(name: 'tags')
-  final List<String>? tags;
+  final List<dynamic>? tags;
 
   factory BookCategoryDataNormalBooksCateNames.fromJson(Map<String,dynamic> json) => _$BookCategoryDataNormalBooksCateNamesFromJson(json);
   Map<String,dynamic> toJson() => _$BookCategoryDataNormalBooksCateNamesToJson(this);

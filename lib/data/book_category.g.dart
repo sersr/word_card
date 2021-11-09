@@ -18,7 +18,7 @@ Map<String, dynamic> _$BookCategoryToJson(BookCategory instance) =>
     <String, dynamic>{
       'reason': instance.reason,
       'code': instance.code,
-      'data': instance.data,
+      'data': instance.data?.toJson(),
     };
 
 BookCategoryData _$BookCategoryDataFromJson(Map<String, dynamic> json) =>
@@ -60,9 +60,7 @@ BookCategoryDataNormalBooksCateNames
     _$BookCategoryDataNormalBooksCateNamesFromJson(Map<String, dynamic> json) =>
         BookCategoryDataNormalBooksCateNames(
           name: json['name'] as String?,
-          tags: (json['tags'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList(),
+          tags: json['tags'] as List<dynamic>?,
         );
 
 Map<String, dynamic> _$BookCategoryDataNormalBooksCateNamesToJson(

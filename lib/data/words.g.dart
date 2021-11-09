@@ -18,7 +18,7 @@ Words _$WordsFromJson(Map<String, dynamic> json) => Words(
 Map<String, dynamic> _$WordsToJson(Words instance) => <String, dynamic>{
       'wordRank': instance.wordRank,
       'headWord': instance.headWord,
-      'content': instance.content,
+      'content': instance.content?.toJson(),
       'bookId': instance.bookId,
     };
 

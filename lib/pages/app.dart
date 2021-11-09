@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:useful_tools/common.dart';
-import 'package:word_card/event/repository.dart';
-import 'package:word_card/provider/home_list.dart';
 
+import '../event/repository.dart';
+import '../provider/home_list.dart';
 import 'home.dart';
 
 class WorldCard extends StatefulWidget {

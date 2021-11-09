@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+import 'package:useful_tools/common.dart';
+import 'package:utils/event_queue.dart';
 
 import '../database/dict_database.dart';
 import '../event/event_base.dart';
@@ -27,9 +29,9 @@ class HomeListNotifier extends ChangeNotifier {
 
   final Repository repository;
   DictEvent get event => repository;
-  DictTableData _data = DictTableData(null);
+  DictTableData? _data;
 
-  DictTableData get data => _data;
+  DictTableData? get data => _data;
 
   @protected
   void setData(DictTableData value) {
@@ -37,8 +39,17 @@ class HomeListNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> initList() async {
-    final dbData = await event.getMainLists() ?? const [];
+  Future<void> load() {
+    return EventQueue.runOneTaskOnQueue(_load, _load);
+  }
+
+
+  Future<void> _load() async {
+    final dbData = await event.getMainLists();
+    // final allIds = dbData?.map((e) => e.dictId).whereType<String>();
     setData(DictTableData(dbData));
   }
+
+
+  Future<void> addDict() async {}
 }

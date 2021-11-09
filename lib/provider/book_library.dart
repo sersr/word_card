@@ -1,9 +1,12 @@
 // ignore_for_file: prefer_final_fields
 
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
-import 'package:utils/event_queue.dart';
+import 'package:useful_tools/useful_tools.dart';
 
 import '../data/data.dart';
+import '../database/dict_database.dart';
 import '../event/repository.dart';
 
 class BookLibraryData {
@@ -128,7 +131,7 @@ class BookLibraryNotifier extends ChangeNotifier {
   String? cate;
   String? tag;
   void changeCate(String? newCate, String? newTag) {
-    EventQueue.runTaskOnQueue(_load(), () {
+    EventQueue.runTaskOnQueue(_load, () {
       if (data == null) return;
       if (cate == newCate && tag == newTag) {
         if (tag == null) {
@@ -167,5 +170,36 @@ class BookLibraryNotifier extends ChangeNotifier {
         }
       }
     }
+  }
+
+  void download(String? id, String? url) {
+    Log.i('$id, $url');
+    EventQueue.runOneTaskOnQueue([download, id, url], () async {
+      if (id == null || url == null) return;
+      if (await repository!.event.getWordsState(id) != true) {
+        await repository!.event.downloadDict(id, url);
+      }
+    });
+  }
+
+  void addDict(BookInfoDataNormalBooksInfo info) {
+    EventQueue.runTaskOnQueue(addDict, () {
+      final name = info.title;
+      final wordNumber = info.wordNum;
+      final dictId = info.id;
+      if (name == null || wordNumber == null || dictId == null) return null;
+      final list = List.generate(wordNumber, (index) => index);
+      final now = DateTime.now().microsecondsSinceEpoch;
+      final dict = DictTable(
+        dictId: dictId,
+        name: name,
+        wordIndex: 1,
+        dataIndex: list,
+        createTime: now,
+        sortKey: now,
+        show: true,
+      );
+      return repository!.event.addDict(dict);
+    });
   }
 }

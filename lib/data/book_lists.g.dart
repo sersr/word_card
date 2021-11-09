@@ -17,7 +17,7 @@ BookLists _$BookListsFromJson(Map<String, dynamic> json) => BookLists(
 Map<String, dynamic> _$BookListsToJson(BookLists instance) => <String, dynamic>{
       'reason': instance.reason,
       'code': instance.code,
-      'data': instance.data,
+      'data': instance.data?.toJson(),
     };
 
 BookListsData _$BookListsDataFromJson(Map<String, dynamic> json) =>
@@ -45,7 +45,7 @@ BookListsDataListBooksInfo _$BookListsDataListBooksInfoFromJson(
       creatorAvatar: json['creatorAvatar'] as String?,
       creatorNickName: json['creatorNickName'] as String?,
       bookId: json['bookId'] as String?,
-      tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      tags: json['tags'] as List<dynamic>?,
     );
 
 Map<String, dynamic> _$BookListsDataListBooksInfoToJson(
