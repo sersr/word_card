@@ -36,12 +36,12 @@ class _HomeAppState extends State<HomeApp> {
         Container(
           height: 56,
           color: Colors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Row(
             children: [
               const Expanded(child: SearchFake(hint: '查询中文或英文')),
               Container(
-                padding: const EdgeInsets.only(left: 6, right: 12),
+                padding: const EdgeInsets.only(left: 12, right: 6),
                 child: const Icon(
                   Icons.add_alarm,
                   color: Color.fromRGBO(120, 120, 120, 1),

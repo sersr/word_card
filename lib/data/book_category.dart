@@ -42,9 +42,9 @@ class BookCategoryDataNormalBooks {
     this.bookList,
   });
   @JsonKey(name: 'cateNames')
-  final List<BookCategoryDataNormalBooksCateNames>? cateNames;
+  final List<BookCategoryDataNormalBooksCateNames?>? cateNames;
   @JsonKey(name: 'bookList')
-  final List<BookCategoryDataNormalBooksBookList>? bookList;
+  final List<BookCategoryDataNormalBooksBookList?>? bookList;
 
   factory BookCategoryDataNormalBooks.fromJson(Map<String,dynamic> json) => _$BookCategoryDataNormalBooksFromJson(json);
   Map<String,dynamic> toJson() => _$BookCategoryDataNormalBooksToJson(this);
@@ -82,9 +82,9 @@ class BookCategoryDataNormalBooksBookList {
   @JsonKey(name: 'id')
   final String? id;
   @JsonKey(name: 'cateName')
-  final List<BookCategoryDataNormalBooksBookListCateName>? cateName;
+  final List<BookCategoryDataNormalBooksBookListCateName?>? cateName;
   @JsonKey(name: 'tags')
-  final List<BookCategoryDataNormalBooksBookListTags>? tags;
+  final List<BookCategoryDataNormalBooksBookListTags?>? tags;
 
   factory BookCategoryDataNormalBooksBookList.fromJson(Map<String,dynamic> json) => _$BookCategoryDataNormalBooksBookListFromJson(json);
   Map<String,dynamic> toJson() => _$BookCategoryDataNormalBooksBookListToJson(this);

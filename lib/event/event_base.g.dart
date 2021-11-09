@@ -16,7 +16,8 @@ enum DictEventMessage {
   watchDictLists,
   getImageSource,
   addDict,
-  updateDict
+  updateDict,
+  getVoicePath
 }
 
 abstract class DictEventResolveMain extends DictEvent
@@ -47,7 +48,8 @@ mixin DictEventResolve on Resolve, DictEvent implements DictEventDynamic {
     _watchDictLists_6,
     _getImageSource_7,
     _addDict_8,
-    _updateDict_9
+    _updateDict_9,
+    _getVoicePath_10
   ]);
 
   @override
@@ -81,6 +83,7 @@ mixin DictEventResolve on Resolve, DictEvent implements DictEventDynamic {
   dynamic _getImageSource_7(args) => getImageSourceDynamic(args);
   FutureOr<int?> _addDict_8(args) => addDict(args);
   FutureOr<int?> _updateDict_9(args) => updateDict(args[0], args[1]);
+  FutureOr<String?> _getVoicePath_10(args) => getVoicePath(args[0], args[1]);
 }
 
 /// implements [DictEvent]
@@ -126,5 +129,9 @@ mixin DictEventMessager {
 
   FutureOr<int?> updateDict(String dictId, DictTable dict) async {
     return sendEvent.sendMessage(DictEventMessage.updateDict, [dictId, dict]);
+  }
+
+  FutureOr<String?> getVoicePath(String word, String type) async {
+    return sendEvent.sendMessage(DictEventMessage.getVoicePath, [word, type]);
   }
 }

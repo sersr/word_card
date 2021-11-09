@@ -64,8 +64,10 @@ WordsContentWordContent _$WordsContentWordContentFromJson(
       speech: json['speech'] as String?,
       usspeech: json['usspeech'] as String?,
       trans: (json['trans'] as List<dynamic>?)
-          ?.map((e) =>
-              WordsContentWordContentTrans.fromJson(e as Map<String, dynamic>))
+          ?.map((e) => e == null
+              ? null
+              : WordsContentWordContentTrans.fromJson(
+                  e as Map<String, dynamic>))
           .toList(),
     );
 
@@ -79,15 +81,17 @@ Map<String, dynamic> _$WordsContentWordContentToJson(
       'star': instance.star,
       'speech': instance.speech,
       'usspeech': instance.usspeech,
-      'trans': instance.trans?.map((e) => e.toJson()).toList(),
+      'trans': instance.trans?.map((e) => e?.toJson()).toList(),
     };
 
 WordsContentWordContentSentence _$WordsContentWordContentSentenceFromJson(
         Map<String, dynamic> json) =>
     WordsContentWordContentSentence(
       sentences: (json['sentences'] as List<dynamic>?)
-          ?.map((e) => WordsContentWordContentSentenceSentences.fromJson(
-              e as Map<String, dynamic>))
+          ?.map((e) => e == null
+              ? null
+              : WordsContentWordContentSentenceSentences.fromJson(
+                  e as Map<String, dynamic>))
           .toList(),
       desc: json['desc'] as String?,
     );
@@ -95,7 +99,7 @@ WordsContentWordContentSentence _$WordsContentWordContentSentenceFromJson(
 Map<String, dynamic> _$WordsContentWordContentSentenceToJson(
         WordsContentWordContentSentence instance) =>
     <String, dynamic>{
-      'sentences': instance.sentences?.map((e) => e.toJson()).toList(),
+      'sentences': instance.sentences?.map((e) => e?.toJson()).toList(),
       'desc': instance.desc,
     };
 

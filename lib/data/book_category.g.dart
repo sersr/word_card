@@ -40,20 +40,24 @@ BookCategoryDataNormalBooks _$BookCategoryDataNormalBooksFromJson(
         Map<String, dynamic> json) =>
     BookCategoryDataNormalBooks(
       cateNames: (json['cateNames'] as List<dynamic>?)
-          ?.map((e) => BookCategoryDataNormalBooksCateNames.fromJson(
-              e as Map<String, dynamic>))
+          ?.map((e) => e == null
+              ? null
+              : BookCategoryDataNormalBooksCateNames.fromJson(
+                  e as Map<String, dynamic>))
           .toList(),
       bookList: (json['bookList'] as List<dynamic>?)
-          ?.map((e) => BookCategoryDataNormalBooksBookList.fromJson(
-              e as Map<String, dynamic>))
+          ?.map((e) => e == null
+              ? null
+              : BookCategoryDataNormalBooksBookList.fromJson(
+                  e as Map<String, dynamic>))
           .toList(),
     );
 
 Map<String, dynamic> _$BookCategoryDataNormalBooksToJson(
         BookCategoryDataNormalBooks instance) =>
     <String, dynamic>{
-      'cateNames': instance.cateNames?.map((e) => e.toJson()).toList(),
-      'bookList': instance.bookList?.map((e) => e.toJson()).toList(),
+      'cateNames': instance.cateNames?.map((e) => e?.toJson()).toList(),
+      'bookList': instance.bookList?.map((e) => e?.toJson()).toList(),
     };
 
 BookCategoryDataNormalBooksCateNames
@@ -77,12 +81,16 @@ BookCategoryDataNormalBooksBookList
           introduce: json['introduce'] as String?,
           id: json['id'] as String?,
           cateName: (json['cateName'] as List<dynamic>?)
-              ?.map((e) => BookCategoryDataNormalBooksBookListCateName.fromJson(
-                  e as Map<String, dynamic>))
+              ?.map((e) => e == null
+                  ? null
+                  : BookCategoryDataNormalBooksBookListCateName.fromJson(
+                      e as Map<String, dynamic>))
               .toList(),
           tags: (json['tags'] as List<dynamic>?)
-              ?.map((e) => BookCategoryDataNormalBooksBookListTags.fromJson(
-                  e as Map<String, dynamic>))
+              ?.map((e) => e == null
+                  ? null
+                  : BookCategoryDataNormalBooksBookListTags.fromJson(
+                      e as Map<String, dynamic>))
               .toList(),
         );
 
@@ -92,8 +100,8 @@ Map<String, dynamic> _$BookCategoryDataNormalBooksBookListToJson(
       'isAvailable': instance.isAvailable,
       'introduce': instance.introduce,
       'id': instance.id,
-      'cateName': instance.cateName?.map((e) => e.toJson()).toList(),
-      'tags': instance.tags?.map((e) => e.toJson()).toList(),
+      'cateName': instance.cateName?.map((e) => e?.toJson()).toList(),
+      'tags': instance.tags?.map((e) => e?.toJson()).toList(),
     };
 
 BookCategoryDataNormalBooksBookListCateName

@@ -26,7 +26,7 @@ class BookListsData {
     this.listBooksInfo,
   });
   @JsonKey(name: 'listBooksInfo')
-  final List<BookListsDataListBooksInfo>? listBooksInfo;
+  final List<BookListsDataListBooksInfo?>? listBooksInfo;
 
   factory BookListsData.fromJson(Map<String,dynamic> json) => _$BookListsDataFromJson(json);
   Map<String,dynamic> toJson() => _$BookListsDataToJson(this);

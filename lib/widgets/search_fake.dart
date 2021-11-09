@@ -1,4 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:useful_tools/widgets.dart';
+
+class Back extends StatelessWidget {
+  const Back({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 56,
+      width: 56,
+      child: OverflowBox(
+        maxHeight: 60,
+        maxWidth: 60,
+        child: btn1(
+            radius: 100,
+            onTap: () {
+              Navigator.maybePop(context);
+            },
+            child: const Center(child: Icon(Icons.arrow_back))),
+      ),
+    );
+  }
+}
 
 class SearchFake extends StatelessWidget {
   const SearchFake({
@@ -11,7 +34,7 @@ class SearchFake extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+      padding: const EdgeInsets.symmetric(vertical: 9),
       child: GestureDetector(
         onTap: () {},
         child: Container(

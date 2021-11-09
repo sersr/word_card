@@ -26,7 +26,7 @@ class BookInfoData {
     this.normalBooksInfo,
   });
   @JsonKey(name: 'normalBooksInfo')
-  final List<BookInfoDataNormalBooksInfo>? normalBooksInfo;
+  final List<BookInfoDataNormalBooksInfo?>? normalBooksInfo;
 
   factory BookInfoData.fromJson(Map<String,dynamic> json) => _$BookInfoDataFromJson(json);
   Map<String,dynamic> toJson() => _$BookInfoDataToJson(this);
@@ -68,7 +68,7 @@ class BookInfoDataNormalBooksInfo {
   @JsonKey(name: 'version')
   final String? version;
   @JsonKey(name: 'tags')
-  final List<BookInfoDataNormalBooksInfoTags>? tags;
+  final List<BookInfoDataNormalBooksInfoTags?>? tags;
 
   factory BookInfoDataNormalBooksInfo.fromJson(Map<String,dynamic> json) => _$BookInfoDataNormalBooksInfoFromJson(json);
   Map<String,dynamic> toJson() => _$BookInfoDataNormalBooksInfoToJson(this);

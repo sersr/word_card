@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:useful_tools/common.dart';
+import 'package:just_audio/just_audio.dart';
 
 import '../data/data.dart';
 import '../database/dict_database.dart';
@@ -58,6 +59,32 @@ class WordCardNotifier extends ChangeNotifier {
           DictTable(
               wordIndex: currentIndex,
               sortKey: DateTime.now().microsecondsSinceEpoch));
+    });
+  }
+
+  final audiopalyer = AudioPlayer();
+  void play(String? word, String? type) {
+    if (word == null || type == null) return;
+
+    EventQueue.runOneTaskOnQueue(audiopalyer, () async {
+      final path = await event.getVoicePath(word, type);
+      if (path == null) return;
+      final currentTask = EventQueue.currentTask;
+      if (currentTask?.canDiscard == true) {
+        Log.w('discard this task', onlyDebug: false);
+        return;
+      }
+
+      EventQueue.runOneTaskOnQueue(play, () async {
+        Log.i('start', onlyDebug: false);
+        if (audiopalyer.playing) {
+          Log.i('playing', onlyDebug: false);
+          await audiopalyer.stop();
+        }
+        await audiopalyer.setFilePath(path);
+        await audiopalyer.play();
+        Log.i('done', onlyDebug: false);
+      });
     });
   }
 }

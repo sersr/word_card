@@ -1,11 +1,16 @@
 class Api {
-  static bookListsUrl() {
+  static String bookListsUrl() {
     return 'http://reciteword.youdao.com/reciteword/v1/param?key=normalBooks';
   }
+
   /// post
-  static bookWordsDataUrl() {
+  static String bookWordsDataUrl() {
     // return 'http://reciteword.youdao.com/reciteword/v1/getBooksInfo';
     return 'http://reciteword.youdao.com/reciteword/v1/getBooksInfo';
+  }
+
+  static String wordVoiceUrl(String word, String type) {
+    return 'https://dict.youdao.com/dictvoice?audio=$word&type=$type';
   }
 }
 // http://reciteword.youdao.com/reciteword/v1/getBooksInfo?screen=900x1600&mid=7.1.

@@ -3,6 +3,8 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive/hive.dart';
+import 'package:useful_tools/common.dart';
 
 void main() async {
   test('listen close', () async {
@@ -10,6 +12,16 @@ void main() async {
     print(stream.runtimeType);
     stream.streamSend();
     await Future.delayed(const Duration(milliseconds: 100));
+  });
+
+  test('hive get', () async {
+    Hive.init('./test/hive');
+    var box = await Hive.openBox('test');
+    await box.put('key', {'hello': 12});
+    await box.close();
+    box = await Hive.openBox('test');
+    final x = box.get('key');
+    Log.i('value: $x');
   });
 }
 

@@ -31,14 +31,14 @@ class BookLibraryData {
     final rawList = normalBooks.bookList;
     if (rawList != null) {
       for (var item in rawList) {
-        final cateName = item.cateName;
+        final cateName = item?.cateName;
 
         if (cateName != null) {
           for (var cateItem in cateName) {
-            final name = cateItem.name;
+            final name = cateItem?.name;
             if (name != null) {
               final _dataList = _cateData.putIfAbsent(name, () => []);
-              _dataList.add(item);
+              _dataList.add(item!);
             }
           }
         }
@@ -89,7 +89,7 @@ class BookLibraryData {
         final tags = item.tags;
         if (tags != null) {
           for (var rawTag in tags) {
-            final tagName = rawTag.tagName;
+            final tagName = rawTag?.tagName;
             if (tagName == tag) {
               dataRef.add(item);
               break;
@@ -119,7 +119,7 @@ class BookLibraryNotifier extends ChangeNotifier {
     final idLists = await repository!.event.getDictLists() ??
         const BookCategoryDataNormalBooks();
     final bookIds =
-        idLists.bookList?.map((e) => e.id).whereType<String>().toList();
+        idLists.bookList?.map((e) => e?.id).whereType<String>().toList();
     if (bookIds != null) {
       final _data =
           await repository!.event.getDictInfoLists(bookIds) ?? const [];
@@ -159,13 +159,14 @@ class BookLibraryNotifier extends ChangeNotifier {
 
   List<BookInfoDataNormalBooksInfo>? get getCateTagData =>
       data?.getCateTagData(cate, tag);
-  List<BookCategoryDataNormalBooksCateNames>? get tagNames =>
+  List<BookCategoryDataNormalBooksCateNames?>? get tagNames =>
       data?.normalBooks.cateNames;
   BookCategoryDataNormalBooksCateNames? get tags {
+    if (cate == null) return null;
     final _tagNames = tagNames;
     if (_tagNames != null) {
       for (var item in _tagNames) {
-        if (item.name == cate) {
+        if (item?.name == cate) {
           return item;
         }
       }
@@ -176,9 +177,9 @@ class BookLibraryNotifier extends ChangeNotifier {
     Log.i('$id, $url');
     EventQueue.runOneTaskOnQueue([download, id, url], () async {
       if (id == null || url == null) return;
-      if (await repository!.event.getWordsState(id) != true) {
+      // if (await repository!.event.getWordsState(id) != true) {
         await repository!.event.downloadDict(id, url);
-      }
+      // }
     });
   }
 

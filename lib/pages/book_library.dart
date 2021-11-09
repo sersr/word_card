@@ -51,20 +51,8 @@ class _BookLibraryState extends State<BookLibrary> {
               Container(
                 height: 56,
                 color: Colors.blue,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: const SearchFake(hint: '查找单词书'),
-                // child: Row(
-                //   children: [
-                //     btn1(
-                //       onTap: () => Navigator.maybePop(context),
-                //       padding: const EdgeInsets.only(left: 6, right: 12),
-                //       child: const Icon(
-                //         Icons.arrow_back_ios,
-                //         color: Color.fromRGBO(120, 120, 120, 1),
-                //       ),
-                //     ),
-                //     const Expanded(child: ),
-                //   ],
-                // ),
               ),
               Expanded(
                 child: ListViewBuilder(
@@ -90,15 +78,15 @@ class _BookLibraryState extends State<BookLibrary> {
                                       // bgColor: Colors.grey.shade400,
                                       onTap: () {
                                         libraryNotifier.changeCate(
-                                            item.name, null);
+                                            item?.name, null);
                                       },
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 10, vertical: 6),
-                                      child: Text('${item.name}',
+                                      child: Text('${item?.name}',
                                           style: TextStyle(
                                               fontSize: 14,
                                               color: libraryNotifier
-                                                      .eqCate(item.name)
+                                                      .eqCate(item?.name)
                                                   ? Colors.green
                                                   : Colors.grey.shade700))),
                                 ),
@@ -173,7 +161,7 @@ class ImageItemLayout extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(
-            child: ImageBuilder(url: info.cover,height: 90,width: 67),
+            child: ImageBuilder(url: info.cover, height: 90, width: 67),
             width: 67,
           ),
           Expanded(
@@ -189,7 +177,7 @@ class ImageItemLayout extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('${info.title}'),
-                      Text('${info.tags?.map((e) => e.tagName).join()}'),
+                      Text('${info.tags?.map((e) => e?.tagName).join()}'),
                     ],
                   )),
                   Row(
@@ -233,7 +221,9 @@ class ImageItemLayout extends StatelessWidget {
 }
 
 class ImageBuilder extends StatefulWidget {
-  const ImageBuilder({Key? key, this.url,required this.height,required this.width}) : super(key: key);
+  const ImageBuilder(
+      {Key? key, this.url, required this.height, required this.width})
+      : super(key: key);
   final String? url;
   final double height;
   final double width;

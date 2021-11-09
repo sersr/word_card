@@ -22,15 +22,16 @@ Map<String, dynamic> _$BookInfoToJson(BookInfo instance) => <String, dynamic>{
 
 BookInfoData _$BookInfoDataFromJson(Map<String, dynamic> json) => BookInfoData(
       normalBooksInfo: (json['normalBooksInfo'] as List<dynamic>?)
-          ?.map((e) =>
-              BookInfoDataNormalBooksInfo.fromJson(e as Map<String, dynamic>))
+          ?.map((e) => e == null
+              ? null
+              : BookInfoDataNormalBooksInfo.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 
 Map<String, dynamic> _$BookInfoDataToJson(BookInfoData instance) =>
     <String, dynamic>{
       'normalBooksInfo':
-          instance.normalBooksInfo?.map((e) => e.toJson()).toList(),
+          instance.normalBooksInfo?.map((e) => e?.toJson()).toList(),
     };
 
 BookInfoDataNormalBooksInfo _$BookInfoDataNormalBooksInfoFromJson(
@@ -50,8 +51,10 @@ BookInfoDataNormalBooksInfo _$BookInfoDataNormalBooksInfoFromJson(
       offlinedata: json['offlinedata'] as String?,
       version: json['version'] as String?,
       tags: (json['tags'] as List<dynamic>?)
-          ?.map((e) => BookInfoDataNormalBooksInfoTags.fromJson(
-              e as Map<String, dynamic>))
+          ?.map((e) => e == null
+              ? null
+              : BookInfoDataNormalBooksInfoTags.fromJson(
+                  e as Map<String, dynamic>))
           .toList(),
     );
 
@@ -68,7 +71,7 @@ Map<String, dynamic> _$BookInfoDataNormalBooksInfoToJson(
       'title': instance.title,
       'offlinedata': instance.offlinedata,
       'version': instance.version,
-      'tags': instance.tags?.map((e) => e.toJson()).toList(),
+      'tags': instance.tags?.map((e) => e?.toJson()).toList(),
     };
 
 BookInfoDataNormalBooksInfoBookOrigin

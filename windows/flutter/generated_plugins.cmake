@@ -3,6 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  libwinmedia
   sqlite3_windows_dll
 )
 

@@ -23,14 +23,15 @@ Map<String, dynamic> _$BookListsToJson(BookLists instance) => <String, dynamic>{
 BookListsData _$BookListsDataFromJson(Map<String, dynamic> json) =>
     BookListsData(
       listBooksInfo: (json['listBooksInfo'] as List<dynamic>?)
-          ?.map((e) =>
-              BookListsDataListBooksInfo.fromJson(e as Map<String, dynamic>))
+          ?.map((e) => e == null
+              ? null
+              : BookListsDataListBooksInfo.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 
 Map<String, dynamic> _$BookListsDataToJson(BookListsData instance) =>
     <String, dynamic>{
-      'listBooksInfo': instance.listBooksInfo?.map((e) => e.toJson()).toList(),
+      'listBooksInfo': instance.listBooksInfo?.map((e) => e?.toJson()).toList(),
     };
 
 BookListsDataListBooksInfo _$BookListsDataListBooksInfoFromJson(

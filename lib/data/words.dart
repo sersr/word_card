@@ -80,7 +80,7 @@ class WordsContentWordContent {
   @JsonKey(name: 'usspeech')
   final String? usspeech;
   @JsonKey(name: 'trans')
-  final List<WordsContentWordContentTrans>? trans;
+  final List<WordsContentWordContentTrans?>? trans;
 
   factory WordsContentWordContent.fromJson(Map<String,dynamic> json) => _$WordsContentWordContentFromJson(json);
   Map<String,dynamic> toJson() => _$WordsContentWordContentToJson(this);
@@ -93,7 +93,7 @@ class WordsContentWordContentSentence {
     this.desc,
   });
   @JsonKey(name: 'sentences')
-  final List<WordsContentWordContentSentenceSentences>? sentences;
+  final List<WordsContentWordContentSentenceSentences?>? sentences;
   @JsonKey(name: 'desc')
   final String? desc;
 

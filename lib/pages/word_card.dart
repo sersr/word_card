@@ -63,17 +63,12 @@ class _WordCardMainState extends State<_WordCardMain> {
           children: [
             Container(
               height: 56,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.only(right: 16),
               child: Row(
-                children: [
-                  btn1(
-                      onTap: () {
-                        Navigator.maybePop(context);
-                      },
-                      child: Center(child: Icon(Icons.arrow_back))),
+                children: const [
+                  Back(),
+                  SizedBox(width: 5),
                   Expanded(child: SearchFake(hint: '查找单词')),
-                  // const Expanded(child: SizedBox()),
-                  // btn1(onTap: () {}, child: Icon(Icons.search)),
                 ],
               ),
             ),
@@ -119,6 +114,13 @@ class WordCard extends StatefulWidget {
 
 class _WordCardState extends State<WordCard> {
   late PageController controller;
+  late WordCardNotifier notifier;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    notifier = context.read();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -196,9 +198,16 @@ class _WordCardState extends State<WordCard> {
                                                 TextLeadingDistribution.even),
                                       ),
                                     ),
-                                    const Icon(Icons.volume_up_rounded,
-                                        size: 35,
-                                        color: Color.fromRGBO(40, 160, 40, 1))
+                                    InkWell(
+                                        onTap: () {
+                                          notifier.play(content?.word?.wordHead,
+                                              content?.word?.content?.usspeech);
+                                        },
+                                        child: const Icon(
+                                            Icons.volume_up_rounded,
+                                            size: 35,
+                                            color:
+                                                Color.fromRGBO(40, 160, 40, 1)))
                                   ],
                                 ),
                                 Text(
@@ -221,10 +230,10 @@ class _WordCardState extends State<WordCard> {
                                         style: const TextStyle(
                                             color: Color.fromRGBO(
                                                 140, 150, 145, 1))),
-                                    genTrans('中', trans?.map((e) => e.tranCn)),
+                                    genTrans('中', trans?.map((e) => e?.tranCn)),
                                     const SizedBox(height: 4),
                                     genTrans(
-                                        '英', trans?.map((e) => e.tranOther)),
+                                        '英', trans?.map((e) => e?.tranOther)),
                                   ],
                                 ),
                               ),
@@ -261,7 +270,7 @@ class _WordCardState extends State<WordCard> {
                                                   CrossAxisAlignment.start,
                                               children: [
                                                 Text(
-                                                  '${item.sContent}',
+                                                  '${item?.sContent}',
                                                   style: const TextStyle(
                                                       color: Color.fromRGBO(
                                                           40, 30, 40, 1),
@@ -269,7 +278,7 @@ class _WordCardState extends State<WordCard> {
                                                 ),
                                                 const SizedBox(height: 2),
                                                 Text(
-                                                  '${item.sCn}',
+                                                  '${item?.sCn}',
                                                   style: const TextStyle(
                                                       color: Color.fromRGBO(
                                                           100, 90, 100, 1),
@@ -394,13 +403,16 @@ class _ProgressPageState extends State<ProgressPage> {
   }
 
   void _listenning() {
-    final currentValue = widget.controller.page?.round() ?? _currentValue;
-    if (_currentValue != currentValue) {
-      Log.i('update: $currentValue');
-      setState(() {
-        _currentValue = currentValue;
-        notifier.updateDict(widget.dictId, _currentValue.toInt());
-      });
+    var currentValue = widget.controller.page?.round();
+    if (currentValue != null) {
+      currentValue += 1;
+      if (_currentValue != currentValue) {
+        Log.i('update: $currentValue');
+        setState(() {
+          _currentValue = currentValue!;
+          notifier.updateDict(widget.dictId, _currentValue);
+        });
+      }
     }
   }
 

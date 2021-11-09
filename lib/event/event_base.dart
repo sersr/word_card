@@ -40,4 +40,5 @@ abstract class DictEvent {
 
   FutureOr<int?> addDict(DictTable dict);
   FutureOr<int?> updateDict(String dictId, DictTable dict);
+  FutureOr<String?> getVoicePath(String word, String type);
 }
