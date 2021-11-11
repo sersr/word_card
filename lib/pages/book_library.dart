@@ -180,36 +180,38 @@ class ImageItemLayout extends StatelessWidget {
                       Text('${info.tags?.map((e) => e?.tagName).join()}'),
                     ],
                   )),
-                  Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 2),
-                        child: btn1(
-                          bgColor: Colors.cyan,
-                          radius: 8,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 4),
-                          child: const Center(child: Text('下载')),
-                          onTap: () {
-                            notifier.download(info.id, info.offlinedata);
-                          },
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 2),
-                        child: btn1(
-                          bgColor: Colors.cyan,
-                          radius: 8,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 4),
-                          child: const Center(child: Text('添加到学习任务中')),
-                          onTap: () {
-                            notifier.addDict(info);
-                          },
-                        ),
-                      )
-                    ],
+                  // Row(
+                  //   children: [
+                  // Padding(
+                  //   padding: const EdgeInsets.symmetric(horizontal: 2),
+                  //   child: btn1(
+                  //     bgColor: Colors.cyan,
+                  //     radius: 8,
+                  //     padding: const EdgeInsets.symmetric(
+                  //         horizontal: 6, vertical: 4),
+                  //     child: const Center(child: Text('下载')),
+                  //     onTap: () {
+                  //       notifier.download(info.id, info.offlinedata);
+                  //     },
+                  //   ),
+                  // ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    child: btn1(
+                      bgColor: Colors.cyan,
+                      radius: 8,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 4),
+                      child: const Center(child: Text('添加到列表中')),
+                      onTap: () {
+                        notifier
+                          ..download(info.id, info.offlinedata)
+                          ..addDict(info);
+                      },
+                    ),
                   )
+                  //   ],
+                  // )
                 ],
               ),
             ),

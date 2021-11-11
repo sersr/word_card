@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:useful_tools/common.dart';
 import 'package:just_audio/just_audio.dart';
@@ -48,6 +49,7 @@ class WordCardNotifier extends ChangeNotifier {
     Log.w('dict:$id');
 
     return EventQueue.runTaskOnQueue([_loadData, id], () async {
+      openVoiceHive(true);
       await _loadData(id);
     });
   }
@@ -63,11 +65,19 @@ class WordCardNotifier extends ChangeNotifier {
   }
 
   final audiopalyer = AudioPlayer();
-  void play(String? word, String? type) {
-    if (word == null || type == null) return;
 
+  void playSentence(String? sentence) {
+    if (sentence == null) return;
+    final tranSentence = sentence.trim().replaceAll('\u3000', ' ').replaceAll(' ', '+');
+    play('$tranSentence&type=2');
+  }
+
+  void play(String? query) {
+    Log.i('query: $query', onlyDebug: false);
+    if (query == null) return;
+    final stop = Stopwatch()..start();
     EventQueue.runOneTaskOnQueue(audiopalyer, () async {
-      final path = await event.getVoicePath(word, type);
+      final path = await event.getVoicePath(query);
       if (path == null) return;
       final currentTask = EventQueue.currentTask;
       if (currentTask?.canDiscard == true) {
@@ -76,15 +86,37 @@ class WordCardNotifier extends ChangeNotifier {
       }
 
       EventQueue.runOneTaskOnQueue(play, () async {
-        Log.i('start', onlyDebug: false);
+        Log.i('start ${stop.elapsedMicroseconds / 1000} ms', onlyDebug: false);
         if (audiopalyer.playing) {
           Log.i('playing', onlyDebug: false);
           await audiopalyer.stop();
+          Log.i('playing ${stop.elapsedMicroseconds / 1000} ms',
+              onlyDebug: false);
         }
         await audiopalyer.setFilePath(path);
+        Log.i('play ${stop.elapsedMicroseconds / 1000} ms', onlyDebug: false);
+        // 不同平台的行为不一致？？
         await audiopalyer.play();
-        Log.i('done', onlyDebug: false);
+        if (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS) {
+          await audiopalyer.stop();
+        }
+        Log.i('done: ${stop.elapsedMicroseconds / 1000} ms', onlyDebug: false);
       });
     });
+  }
+
+  void openVoiceHive(bool open) {
+    EventQueue.runTaskOnQueue(audiopalyer, () async {
+      await event.openDict(!open);
+      await event.openVoiceHive(open);
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    audiopalyer.dispose();
+    openVoiceHive(false);
   }
 }

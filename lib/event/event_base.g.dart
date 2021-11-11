@@ -17,7 +17,9 @@ enum DictEventMessage {
   getImageSource,
   addDict,
   updateDict,
-  getVoicePath
+  getVoicePath,
+  openVoiceHive,
+  openDict
 }
 
 abstract class DictEventResolveMain extends DictEvent
@@ -49,7 +51,9 @@ mixin DictEventResolve on Resolve, DictEvent implements DictEventDynamic {
     _getImageSource_7,
     _addDict_8,
     _updateDict_9,
-    _getVoicePath_10
+    _getVoicePath_10,
+    _openVoiceHive_11,
+    _openDict_12
   ]);
 
   @override
@@ -83,7 +87,9 @@ mixin DictEventResolve on Resolve, DictEvent implements DictEventDynamic {
   dynamic _getImageSource_7(args) => getImageSourceDynamic(args);
   FutureOr<int?> _addDict_8(args) => addDict(args);
   FutureOr<int?> _updateDict_9(args) => updateDict(args[0], args[1]);
-  FutureOr<String?> _getVoicePath_10(args) => getVoicePath(args[0], args[1]);
+  FutureOr<String?> _getVoicePath_10(args) => getVoicePath(args);
+  FutureOr<void> _openVoiceHive_11(args) => openVoiceHive(args);
+  FutureOr<void> _openDict_12(args) => openDict(args);
 }
 
 /// implements [DictEvent]
@@ -131,7 +137,15 @@ mixin DictEventMessager {
     return sendEvent.sendMessage(DictEventMessage.updateDict, [dictId, dict]);
   }
 
-  FutureOr<String?> getVoicePath(String word, String type) async {
-    return sendEvent.sendMessage(DictEventMessage.getVoicePath, [word, type]);
+  FutureOr<String?> getVoicePath(String query) async {
+    return sendEvent.sendMessage(DictEventMessage.getVoicePath, query);
+  }
+
+  FutureOr<void> openVoiceHive(bool open) async {
+    return sendEvent.sendMessage(DictEventMessage.openVoiceHive, open);
+  }
+
+  FutureOr<void> openDict(bool open) async {
+    return sendEvent.sendMessage(DictEventMessage.openDict, open);
   }
 }

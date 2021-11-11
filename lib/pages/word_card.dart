@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_const_constructors
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:useful_tools/useful_tools.dart';
@@ -115,6 +116,7 @@ class WordCard extends StatefulWidget {
 class _WordCardState extends State<WordCard> {
   late PageController controller;
   late WordCardNotifier notifier;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -126,6 +128,8 @@ class _WordCardState extends State<WordCard> {
     super.initState();
     controller = PageController(initialPage: widget.currentIndex - 1);
   }
+
+  void Function(TextSelection selection, SelectionChangedCause cause) {}
 
   Widget genTrans(String lan, Iterable<String?>? data) {
     return Row(
@@ -142,8 +146,8 @@ class _WordCardState extends State<WordCard> {
             children: [
               if (data != null)
                 for (var item in data)
-                  Text(
-                    '$item',
+                  WordCardSelection(
+                    text: '$item',
                     style: const TextStyle(
                         color: Color.fromRGBO(100, 90, 100, 1), fontSize: 15),
                   )
@@ -158,149 +162,305 @@ class _WordCardState extends State<WordCard> {
       defaultTargetPlatform == TargetPlatform.windows ||
       defaultTargetPlatform == TargetPlatform.macOS ||
       defaultTargetPlatform == TargetPlatform.linux;
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        PageView.builder(
-            controller: controller,
-            itemCount: widget.words.length,
-            allowImplicitScrolling: true,
-            itemBuilder: (context, index) {
-              final data = widget.words[index];
-              final content = data.content;
-              final trans = content?.word?.content?.trans;
-              final cenences = content?.word?.content?.sentence;
-              return SingleChildScrollView(
-                  controller: ScrollController(),
-                  child: Container(
-                    // color: Color.fromRGBO(180, 180, 180, 1),
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Bannel(
-                          radius: 8,
-                          color: Colors.grey.shade200,
-                          child: Column(
+
+  /// 头部，显示单词
+  Widget wordWidget(String? word, String? usphone, String? ukphone,
+      String? usspeech, String? ukspeech) {
+    return Bannel(
+      radius: 8,
+      color: Colors.grey.shade200,
+      child: InkWell(
+        onTap: () {
+          notifier.play(usspeech);
+        },
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Text(
+                  '$word',
+                  style: const TextStyle(
+                      fontSize: 35,
+                      leadingDistribution: TextLeadingDistribution.even),
+                ),
+              ),
+              const Icon(Icons.volume_up_rounded,
+                  size: 35, color: Color.fromRGBO(40, 160, 40, 1))
+            ],
+          ),
+          if (usphone != null || ukphone != null)
+            Row(
+              children: [
+                if (usphone != null)
+                  btn1(
+                    bgColor: Colors.grey.shade200,
+                    splashColor: Colors.grey.shade400,
+                    onTap: () {
+                      notifier.play(usspeech);
+                    },
+                    child: Text(
+                      '美: [$usphone]',
+                      style:
+                          TextStyle(color: Colors.grey.shade500, fontSize: 15),
+                    ),
+                  ),
+                if (usphone != null) const SizedBox(width: 5),
+                if (ukphone != null)
+                  btn1(
+                    bgColor: Colors.grey.shade200,
+                    splashColor: Colors.grey.shade400,
+                    onTap: () {
+                      notifier.play(ukspeech);
+                    },
+                    child: Text(
+                      '英: [$ukphone]',
+                      style:
+                          TextStyle(color: Colors.grey.shade500, fontSize: 15),
+                    ),
+                  )
+              ],
+            )
+        ]),
+      ),
+    );
+  }
+
+  /// 单词释义
+  Widget tranWidget(Iterable<String?>? tranCn, Iterable<String?>? tranOther) {
+    final tranOtherIsNotEmpty = tranOther?.isNotEmpty == true;
+    final tranCnIsNotEmpty = tranCn?.isNotEmpty == true;
+    return Bannel(
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('释义',
+                    style: const TextStyle(
+                        color: Color.fromRGBO(140, 150, 145, 1))),
+                if (tranCnIsNotEmpty) genTrans('中', tranCn),
+                if (tranOtherIsNotEmpty) const SizedBox(height: 4),
+                if (tranOtherIsNotEmpty) genTrans('英', tranOther),
+              ],
+            ),
+          ),
+        ],
+      ),
+      color: Colors.grey.shade200,
+      radius: 8,
+    );
+  }
+
+  /// 例句
+  Widget sentencesWidget(
+      String? desc, List<WordsContentWordContentSentenceSentences?> sentences) {
+    return Bannel(
+      color: Colors.grey.shade200,
+      radius: 8,
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (desc != null)
+                  Text(
+                    desc,
+                    style: const TextStyle(
+                      color: Color.fromRGBO(140, 150, 145, 1),
+                    ),
+                  ),
+                for (var item in sentences)
+                  if ((item?.sCn != null || item?.sContent != null) &&
+                      item != null)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        '${data.content?.word?.wordHead}',
-                                        style: const TextStyle(
-                                            fontSize: 35,
-                                            leadingDistribution:
-                                                TextLeadingDistribution.even),
-                                      ),
-                                    ),
-                                    InkWell(
-                                        onTap: () {
-                                          notifier.play(content?.word?.wordHead,
-                                              content?.word?.content?.usspeech);
-                                        },
-                                        child: const Icon(
-                                            Icons.volume_up_rounded,
-                                            size: 35,
-                                            color:
-                                                Color.fromRGBO(40, 160, 40, 1)))
-                                  ],
+                                WordCardSelection(
+                                  text: '${item.sContent}',
+                                  style: const TextStyle(
+                                      color: Color.fromRGBO(40, 30, 40, 1),
+                                      fontSize: 15),
                                 ),
-                                Text(
-                                  '/${content?.word?.content?.usphone}/',
-                                  style: TextStyle(
-                                      color: Colors.grey.shade500,
-                                      fontSize: 16),
-                                )
-                              ]),
-                        ),
-                        const SizedBox(height: 5),
-                        Bannel(
-                          child: Row(
+                                if (item.sCn != null) const SizedBox(height: 2),
+                                if (item.sCn != null)
+                                  Text(
+                                    '${item.sCn}',
+                                    style: const TextStyle(
+                                        color: Color.fromRGBO(100, 90, 100, 1),
+                                        fontSize: 13),
+                                  )
+                              ],
+                            ),
+                          ),
+                          playButton(item.sContent),
+                        ],
+                      ),
+                    )
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget realSentenceWiget(String? desc,
+      List<WordsContentWordContentRealExamSentenceSentences?> sentences) {
+    return Bannel(
+      color: Colors.grey.shade200,
+      radius: 8,
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (desc != null)
+                  Text(
+                    desc,
+                    style: const TextStyle(
+                      color: Color.fromRGBO(140, 150, 145, 1),
+                    ),
+                  ),
+                for (var item in sentences)
+                  if (item?.sContent != null)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
                             children: [
                               Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('释义',
-                                        style: const TextStyle(
-                                            color: Color.fromRGBO(
-                                                140, 150, 145, 1))),
-                                    genTrans('中', trans?.map((e) => e?.tranCn)),
-                                    const SizedBox(height: 4),
-                                    genTrans(
-                                        '英', trans?.map((e) => e?.tranOther)),
-                                  ],
+                                child: WordCardSelection(
+                                  text:
+                                      '${item!.sContent?.trim().replaceAll('\u3000|', ' ')}',
+                                  style: const TextStyle(
+                                      color: Color.fromRGBO(40, 30, 40, 1),
+                                      fontSize: 15),
                                 ),
                               ),
+                              playButton(item.sContent),
                             ],
                           ),
-                          color: Colors.grey.shade200,
-                          radius: 8,
-                        ),
-                        const SizedBox(height: 5),
-                        Bannel(
-                            color: Colors.grey.shade200,
-                            radius: 8,
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      if (cenences?.desc != null)
-                                        Text(
-                                          '${cenences?.desc}',
-                                          style: const TextStyle(
-                                              color: Color.fromRGBO(
-                                                  140, 150, 145, 1)),
-                                        ),
-                                      if (cenences?.sentences != null)
-                                        for (var item in cenences!.sentences!)
-                                          Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                vertical: 4),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  '${item?.sContent}',
-                                                  style: const TextStyle(
-                                                      color: Color.fromRGBO(
-                                                          40, 30, 40, 1),
-                                                      fontSize: 15),
-                                                ),
-                                                const SizedBox(height: 2),
-                                                Text(
-                                                  '${item?.sCn}',
-                                                  style: const TextStyle(
-                                                      color: Color.fromRGBO(
-                                                          100, 90, 100, 1),
-                                                      fontSize: 15),
-                                                )
-                                              ],
-                                            ),
-                                          )
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            )),
-                        // Text(
-                        //   '${data.toJson()}',
-                        //   style: TextStyle(fontSize: 18, height: 1.8),
-                        // ),
-                        const SizedBox(height: 50)
-                      ],
-                    ),
-                  ));
-            }),
+                          const SizedBox(height: 5),
+                          Text(
+                            ' > ${genInfo(item.sourceInfo)}',
+                            style: const TextStyle(
+                                color: Color.fromRGBO(125, 130, 125, 1),
+                                fontSize: 14),
+                          )
+                        ],
+                      ),
+                    )
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String genInfo(
+      WordsContentWordContentRealExamSentenceSentencesSourceInfo? sourceInfo) {
+    if (sourceInfo == null) return '';
+    final list = <String>[];
+    if (sourceInfo.type != null) {
+      list.add(sourceInfo.type!);
+    }
+    if (sourceInfo.year != null) {
+      list.add(sourceInfo.year!);
+    }
+    if (sourceInfo.level != null) {
+      list.add(sourceInfo.level!);
+    }
+    if (sourceInfo.paper != null) {
+      list.add(sourceInfo.paper!);
+    }
+    return list.join(' · ');
+  }
+
+  /// TODO:
+  Widget synoWidget() {
+    return Container();
+  }
+
+  Widget playButton(String? content) {
+    return btn1(
+      bgColor: Colors.grey.shade200,
+      splashColor: Colors.grey.shade400,
+      radius: 30,
+      padding: const EdgeInsets.all(4),
+      onTap: () {
+        notifier.playSentence(content);
+      },
+      child: const Icon(Icons.volume_up_rounded,
+          size: 22, color: Color.fromRGBO(90, 210, 90, 1)),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final page = PageView.builder(
+        controller: controller,
+        itemCount: widget.words.length,
+        allowImplicitScrolling: true,
+        itemBuilder: (context, index) {
+          final data = widget.words[index];
+          final content = data.content;
+          final trans = content?.word?.content?.trans;
+          final sentence = content?.word?.content?.sentence;
+          final word = content?.word?.wordHead;
+          final usphone = content?.word?.content?.usphone;
+          final ukphone = content?.word?.content?.ukphone;
+          final usspeech = content?.word?.content?.usspeech;
+          final ukspeech = content?.word?.content?.ukspeech;
+          final tranCn = trans?.map((e) => e?.tranCn).whereType<String>();
+          final tranOther = trans?.map((e) => e?.tranOther).whereType<String>();
+
+          final showTran = tranCn != null || tranOther != null;
+          final desc = sentence?.desc;
+          final sentences = sentence?.sentences;
+          final showSentences = sentences != null;
+
+          final realSentence = content?.word?.content?.realExamSentence;
+          final realDesc = realSentence?.desc;
+          final realSentences = realSentence?.sentences;
+          final showRealSentences = realSentences != null;
+          final syno = content?.word?.content?.syno;
+          return SingleChildScrollView(
+              controller: ScrollController(),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 5),
+                    wordWidget(word, usphone, ukphone, usspeech, ukspeech),
+                    if (showTran) const SizedBox(height: 5),
+                    if (showTran) tranWidget(tranCn, tranOther),
+                    if (showSentences) const SizedBox(height: 5),
+                    if (showSentences) sentencesWidget(desc, sentences),
+                    if (showRealSentences) const SizedBox(height: 5),
+                    if (showRealSentences)
+                      realSentenceWiget(realDesc, realSentences),
+                    const SizedBox(height: 50)
+                  ],
+                ),
+              ));
+        });
+    return Stack(
+      children: [
+        page,
         if (show)
           Positioned(
             left: 10,
@@ -332,20 +492,23 @@ class _WordCardState extends State<WordCard> {
             ),
           ),
         Positioned(
-            bottom: 0,
-            left: 32,
-            right: 32,
-            child: RepaintBoundary(
-              child: AnimatedBuilder(
-                  animation: controller,
-                  builder: (context, _) {
-                    return ProgressPage(
-                        dictId: widget.dictId,
-                        initValue: widget.currentIndex,
-                        max: widget.words.length,
-                        controller: controller);
-                  }),
-            ))
+          bottom: 0,
+          left: 32,
+          right: 32,
+          child: RepaintBoundary(
+            child: AnimatedBuilder(
+              animation: controller,
+              builder: (context, _) {
+                return ProgressPage(
+                  dictId: widget.dictId,
+                  initValue: widget.currentIndex,
+                  max: widget.words.length,
+                  controller: controller,
+                );
+              },
+            ),
+          ),
+        )
       ],
     );
   }
@@ -444,6 +607,7 @@ class Bannel extends StatelessWidget {
   final Color? color;
   final EdgeInsets? padding;
   final double? radius;
+
   @override
   Widget build(BuildContext context) {
     Widget base = child;
@@ -460,5 +624,264 @@ class Bannel extends StatelessWidget {
       }
     }
     return base;
+  }
+}
+
+class WordCardSelection extends StatefulWidget {
+  const WordCardSelection({Key? key, required this.text, required this.style})
+      : super(key: key);
+  final String text;
+  final TextStyle style;
+  @override
+  WordCardSelectionState createState() => WordCardSelectionState();
+}
+
+class WordCardSelectionState extends State<WordCardSelection> {
+  late TextEditingController textEditingController;
+  late FocusNode focusNode;
+  final GlobalKey<EditableTextState> editableTextKey =
+      GlobalKey<EditableTextState>();
+
+  @override
+  void initState() {
+    super.initState();
+    textEditingController = TextEditingController(text: widget.text);
+    focusNode = FocusNode();
+  }
+
+  @override
+  void didUpdateWidget(covariant WordCardSelection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.text != widget.text) {
+      textEditingController.text = widget.text;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // [EditableText] 不满足要求，需要对其进行魔改
+    return EditableText(
+      key: editableTextKey,
+      controller: textEditingController,
+      focusNode: focusNode,
+      style: widget.style,
+      cursorColor: Colors.lightBlue.shade200,
+      showCursor: false,
+      maxLines: null,
+      readOnly: true,
+      onChanged: (v) {
+        Log.i('v:$v');
+      },
+      onSelectionHandleTapped: () {
+        Log.i('tap');
+      },
+      onSubmitted: (v) {
+        Log.i('s: $v');
+      },
+      selectionColor: Colors.lightBlue.shade200,
+      onSelectionChanged: (textSelection, selectionChangedCause) {
+        final word = textSelection.textInside(widget.text);
+        if (textIsEmpty(word)) return;
+        final notifier = context.read<WordCardNotifier>();
+
+        showModalBottomSheet(
+            context: context,
+            builder: (context) {
+              return Container(
+                height: 240,
+                color: Colors.white,
+                padding: const EdgeInsets.only(top: 8),
+                child:
+                    Scaffold(body: SelectWord(word: word, notifier: notifier)),
+              );
+            }).then((_) {
+          if (mounted) {
+            editableTextKey.currentState!.userUpdateTextEditingValue(
+                TextEditingValue(
+                    text: widget.text,
+                    selection: TextSelection(baseOffset: 0, extentOffset: 0)),
+                selectionChangedCause);
+          }
+        });
+      },
+      textDirection: TextDirection.ltr,
+      backgroundCursorColor: Colors.yellow,
+    );
+  }
+
+  bool textIsEmpty(String text) {
+    return text.replaceAll(RegExp('[^a-zA-Z]|\\.| '), '').isEmpty;
+  }
+}
+
+class SelectWord extends StatefulWidget {
+  const SelectWord({Key? key, required this.word, required this.notifier})
+      : super(key: key);
+  final String word;
+  final WordCardNotifier notifier;
+
+  @override
+  _SelectWordState createState() => _SelectWordState();
+}
+
+class _SelectWordState extends State<SelectWord> {
+  @override
+  Widget build(BuildContext context) {
+    final data = widget.notifier.data;
+    Words? words;
+    try {
+      words = data?.firstWhere(
+          (element) => element.content?.word?.wordHead == widget.word);
+    } catch (e) {
+      Log.i(e);
+    }
+    if (data == null || words == null) {
+      return SizedBox(
+          height: 40,
+          child: Center(child: Text('在本词汇书中没有${widget.word},后续会支持检索其他词汇书')));
+    }
+
+    final content = words.content;
+    final trans = content?.word?.content?.trans;
+
+    final word = content?.word?.wordHead;
+    final usphone = content?.word?.content?.usphone;
+    final ukphone = content?.word?.content?.ukphone;
+    final usspeech = content?.word?.content?.usspeech;
+    final ukspeech = content?.word?.content?.ukspeech;
+    final tranCn = trans?.map((e) => e?.tranCn).whereType<String>();
+    final tranOther = trans?.map((e) => e?.tranOther).whereType<String>();
+
+    final showTran = tranCn != null || tranOther != null;
+    return SingleChildScrollView(
+        controller: ScrollController(),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              wordWidget(word, usphone, ukphone, usspeech, ukspeech),
+              if (showTran) const SizedBox(height: 5),
+              if (showTran) tranWidget(tranCn, tranOther),
+            ],
+          ),
+        ));
+  }
+
+  Widget wordWidget(String? word, String? usphone, String? ukphone,
+      String? usspeech, String? ukspeech) {
+    return Bannel(
+      radius: 8,
+      color: Colors.grey.shade200,
+      child: InkWell(
+        onTap: () {
+          widget.notifier.play(usspeech);
+        },
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Text(
+                  '$word',
+                  style: const TextStyle(
+                      fontSize: 35,
+                      leadingDistribution: TextLeadingDistribution.even),
+                ),
+              ),
+              const Icon(Icons.volume_up_rounded,
+                  size: 35, color: Color.fromRGBO(40, 160, 40, 1))
+            ],
+          ),
+          if (usphone != null || ukphone != null)
+            Row(
+              children: [
+                if (usphone != null)
+                  btn1(
+                    bgColor: Colors.grey.shade200,
+                    splashColor: Colors.grey.shade400,
+                    onTap: () {
+                      widget.notifier.play(usspeech);
+                    },
+                    child: Text(
+                      '美: [$usphone]',
+                      style:
+                          TextStyle(color: Colors.grey.shade500, fontSize: 15),
+                    ),
+                  ),
+                if (usphone != null) const SizedBox(width: 5),
+                if (ukphone != null)
+                  btn1(
+                    bgColor: Colors.grey.shade200,
+                    splashColor: Colors.grey.shade400,
+                    onTap: () {
+                      widget.notifier.play(ukspeech);
+                    },
+                    child: Text(
+                      '英: [$ukphone]',
+                      style:
+                          TextStyle(color: Colors.grey.shade500, fontSize: 15),
+                    ),
+                  )
+              ],
+            )
+        ]),
+      ),
+    );
+  }
+
+  /// 单词释义
+  Widget tranWidget(Iterable<String?>? tranCn, Iterable<String?>? tranOther) {
+    final tranOtherIsNotEmpty = tranOther?.isNotEmpty == true;
+    final tranCnIsNotEmpty = tranCn?.isNotEmpty == true;
+    return Bannel(
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('释义',
+                    style: const TextStyle(
+                        color: Color.fromRGBO(140, 150, 145, 1))),
+                if (tranCnIsNotEmpty) genTrans('中', tranCn),
+                if (tranOtherIsNotEmpty) const SizedBox(height: 4),
+                if (tranOtherIsNotEmpty) genTrans('英', tranOther),
+              ],
+            ),
+          ),
+        ],
+      ),
+      color: Colors.grey.shade200,
+      radius: 8,
+    );
+  }
+
+  Widget genTrans(String lan, Iterable<String?>? data) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '$lan: ',
+          style: const TextStyle(
+              color: Color.fromRGBO(100, 90, 100, 1), fontSize: 15),
+        ),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (data != null)
+                for (var item in data)
+                  Text(
+                    '$item',
+                    style: const TextStyle(
+                        color: Color.fromRGBO(100, 90, 100, 1), fontSize: 15),
+                  )
+            ],
+          ),
+        )
+      ],
+    );
   }
 }

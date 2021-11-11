@@ -5,77 +5,17 @@ import 'dart:isolate';
 
 import 'package:archive/archive.dart';
 import 'package:dio/dio.dart';
-import 'package:file/file.dart';
 import 'package:file/local.dart';
 import 'package:hive/hive.dart';
 import 'package:nop_db/extensions/future_or_ext.dart';
 import 'package:path/path.dart';
 import 'package:useful_tools/common.dart';
+import '../tools/hive_cache.dart';
 
 import '../api/api.dart';
 import '../data/data.dart';
 import '../database/dict_database.dart';
 import 'event_base.dart';
-
-class CacheHive {
-  CacheHive(this.box, this.onDispose);
-  final Box box;
-  final void Function() onDispose;
-
-  Box use() {
-    timer?.cancel();
-    return box;
-  }
-
-  Timer? timer;
-  void end() {
-    timer?.cancel();
-    timer = Timer(const Duration(seconds: 30), onDispose);
-  }
-
-  static final _cacheHive = <String, CacheHive>{};
-
-  static Future<void> beginHive(
-      String fileName, Future<void> Function(Box box) run) {
-    return eventRun(fileName, () => _beginHive(fileName, run));
-  }
-
-  static Future<void> eventRun(String fileName, Future<void> Function() run) {
-    return EventQueue.runTaskOnQueue([_beginHive, fileName], run);
-  }
-
-// 在生命函数期间`box`不会被关闭
-  static Future<void> _beginHive(
-      String fileName, Future<void> Function(Box box) run) async {
-    try {
-      CacheHive box;
-      if (_cacheHive.containsKey(fileName)) {
-        box = _cacheHive[fileName]!;
-      } else {
-        final hiveBox = await Hive.openBox(fileName);
-        box = CacheHive(hiveBox, () {
-          eventRun(fileName, () async {
-            _cacheHive.remove(fileName);
-            await hiveBox.close();
-          });
-        });
-        _cacheHive[fileName] = box;
-      }
-
-      try {
-        final hiveBox = box.use();
-        await run(hiveBox);
-      } catch (e) {
-        Log.e(e, onlyDebug: false);
-      } finally {
-        box.end();
-      }
-    } on HiveError catch (e) {
-      Log.e('在当前隔离中可能没有初始化\n`Hive.init(path);`', onlyDebug: false);
-      Log.e(e, onlyDebug: false);
-    }
-  }
-}
 
 /// 实现类
 class DictEventIsolate extends DictEventResolveMain with DatabaseMixin {
@@ -90,13 +30,23 @@ class DictEventIsolate extends DictEventResolveMain with DatabaseMixin {
     voicePath = join(path, 'voice');
     dio = Dio(BaseOptions(
         connectTimeout: 30000, sendTimeout: 30000, receiveTimeout: 30000));
+    openDict(true);
     return initDb();
   }
 
-  Future<void> beginDict(Future<void> Function(Box box) run) {
+  Future<void> beginDict(FutureOr<void> Function(CacheHive box) run) {
     return CacheHive.beginHive('dictHive', run);
   }
 
+  @override
+  Future<void> openDict(bool open) {
+    return beginDict((box) {
+      box.ticked = !open;
+      Log.i('dict: $open', onlyDebug: false);
+    });
+  }
+
+  /// TODO: 为了方便检索单词，存储方式Hive修改为sqlite
   @override
   FutureOr<int?> downloadDict(String id, String url) async {
     Log.i('start');
@@ -127,8 +77,9 @@ class DictEventIsolate extends DictEventResolveMain with DatabaseMixin {
               }
             }
             if (listData.isNotEmpty) {
-              await beginDict((box) async {
+              await beginDict((cacheBox) async {
                 Log.i('data');
+                final box = cacheBox.use();
                 if (box.get(id) == null) {
                   return box.put(id, listData);
                 }
@@ -199,9 +150,8 @@ class DictEventIsolate extends DictEventResolveMain with DatabaseMixin {
     // final List<Words> wordsData = [];
     final stream = StreamController<List<Words>>.broadcast(sync: true);
     Timer.run(() async {
-      // start
-      // stream.add(const Words());
-      beginDict((box) async {
+      beginDict((cacheBox) async {
+        final box = cacheBox.use();
         final data = box.get(id);
         // await box.delete(id);
         if (data is List) {
@@ -240,7 +190,8 @@ class DictEventIsolate extends DictEventResolveMain with DatabaseMixin {
   @override
   Future<bool> getWordsState(String id) async {
     var hasData = false;
-    await beginDict((box) async {
+    await beginDict((cacheBox) async {
+      final box = cacheBox.use();
       hasData = box.get(id) != null;
     });
     return hasData;
@@ -270,29 +221,45 @@ class DictEventIsolate extends DictEventResolveMain with DatabaseMixin {
   }
 
   @override
-  FutureOr<String?> getVoicePath(String word, String type) async {
+  Future<void> openVoiceHive(bool open) {
+    return _openVoiceHive((cacheBox) {
+      cacheBox.ticked = !open;
+      Log.i('voice: $open', onlyDebug: false);
+    });
+  }
+
+  Future<void> _openVoiceHive(
+      FutureOr<void> Function(CacheHive cacheHive) run) {
+    return CacheHive.beginHive('word_voice', run);
+  }
+
+  @override
+  FutureOr<String?> getVoicePath(String query) async {
     String? filePath;
     const fs = LocalFileSystem();
-    final stop = Stopwatch()..start();
-    await CacheHive.beginHive('word_voice', (box) async {
-      final key = '$word$type';
+    await _openVoiceHive((cacheBox) async {
+      final box = cacheBox.use();
+      final key = base64Encode(utf8.encode(query));
+
       final oldPath = box.get(key);
       if (oldPath != null) {
         final f = fs.currentDirectory.childFile(oldPath);
         if (await f.exists()) {
           filePath = oldPath;
-          Log.i('use: ${stop.elapsedMicroseconds / 1000} ms..',
-              onlyDebug: false);
           return;
+        } else {
+          await box.delete(key);
         }
       }
-      final url = Api.wordVoiceUrl(word, type);
+
+      final url = Api.wordVoiceUrl(query);
+
       try {
         final response = await dio.get<List<int>>(url,
             options: Options(responseType: ResponseType.bytes));
         final data = response.data;
         if (data?.isNotEmpty == true) {
-          final name = join(voicePath, 'wor_voice', key);
+          final name = join(voicePath, 'word_voice', key);
           final file = fs.currentDirectory.childFile(name);
           if (!file.existsSync()) {
             file.createSync(recursive: true);
@@ -301,7 +268,6 @@ class DictEventIsolate extends DictEventResolveMain with DatabaseMixin {
           }
           file.writeAsBytesSync(data!);
           await box.put(key, name);
-          Log.i('file: $name');
           filePath = name;
         }
       } catch (e) {
