@@ -29,7 +29,7 @@ abstract class DictEvent {
   FutureOr<int?> downloadDict(String id, String url);
 
   /// 获取一本书籍的所有单词
-  Stream<List<Words>> getWordsData(String id);
+  Stream<List<WordTable>> getWordsData(String id);
 
   /// 主页展示所有创建的单词组，比如通过随机排列生成不同的单词组
   FutureOr<List<DictTable>?> getMainLists();
@@ -42,5 +42,6 @@ abstract class DictEvent {
   FutureOr<int?> updateDict(String dictId, DictTable dict);
   FutureOr<String?> getVoicePath(String query);
   FutureOr<void> openVoiceHive(bool open);
-  FutureOr<void> openDict(bool open);
+  // FutureOr<void> openDict(bool open);
+  FutureOr<WordTable?> getWord(String headWord);
 }

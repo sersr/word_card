@@ -173,22 +173,34 @@ class BookLibraryNotifier extends ChangeNotifier {
     }
   }
 
-  void download(String? id, String? url) {
+  Future<void> download(String? id, String? url) {
     Log.i('$id, $url');
-    EventQueue.runOneTaskOnQueue([download, id, url], () async {
+    return EventQueue.runOneTaskOnQueue([download, id, url], () async {
       if (id == null || url == null) return;
-      // if (await repository!.event.getWordsState(id) != true) {
-        await repository!.event.downloadDict(id, url);
-      // }
+      await repository!.event.downloadDict(id, url);
     });
   }
 
-  void addDict(BookInfoDataNormalBooksInfo info) {
-    EventQueue.runTaskOnQueue(addDict, () {
+  Future<bool> getWordState(String? id) async {
+    return id != null && await repository!.event.getWordsState(id) == true;
+  }
+
+  Future<void> loadAndAdd(
+      String? id, String? url, BookInfoDataNormalBooksInfo info) {
+    return EventQueue.runOneTaskOnQueue(loadAndAdd, () async {
+      if (id == null || url == null) return;
+      await repository!.event.downloadDict(id, url);
+      await addDict(info);
+      notifyListeners();
+    });
+  }
+
+  Future<void> addDict(BookInfoDataNormalBooksInfo info) {
+    return EventQueue.runTaskOnQueue(addDict, () async {
       final name = info.title;
       final wordNumber = info.wordNum;
       final dictId = info.id;
-      if (name == null || wordNumber == null || dictId == null) return null;
+      if (name == null || wordNumber == null || dictId == null) return;
       final list = List.generate(wordNumber, (index) => index);
       final now = DateTime.now().microsecondsSinceEpoch;
       final dict = DictTable(
@@ -200,7 +212,7 @@ class BookLibraryNotifier extends ChangeNotifier {
         sortKey: now,
         show: true,
       );
-      return repository!.event.addDict(dict);
+      await repository!.event.addDict(dict);
     });
   }
 }

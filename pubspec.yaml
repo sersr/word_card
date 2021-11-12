@@ -35,6 +35,7 @@ dependencies:
   audioplayers: ^0.20.1
   just_audio: ^0.9.17
   just_audio_libwinmedia: any
+  supercharged: ^2.1.1
   
 dev_dependencies:
   flutter_test:

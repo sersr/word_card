@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:useful_tools/useful_tools.dart';
+import 'package:word_card/provider/home_list.dart';
 
 import '../data/data.dart';
 import '../event/repository.dart';
@@ -180,21 +181,6 @@ class ImageItemLayout extends StatelessWidget {
                       Text('${info.tags?.map((e) => e?.tagName).join()}'),
                     ],
                   )),
-                  // Row(
-                  //   children: [
-                  // Padding(
-                  //   padding: const EdgeInsets.symmetric(horizontal: 2),
-                  //   child: btn1(
-                  //     bgColor: Colors.cyan,
-                  //     radius: 8,
-                  //     padding: const EdgeInsets.symmetric(
-                  //         horizontal: 6, vertical: 4),
-                  //     child: const Center(child: Text('下载')),
-                  //     onTap: () {
-                  //       notifier.download(info.id, info.offlinedata);
-                  //     },
-                  //   ),
-                  // ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 2),
                     child: btn1(
@@ -202,11 +188,18 @@ class ImageItemLayout extends StatelessWidget {
                       radius: 8,
                       padding: const EdgeInsets.symmetric(
                           horizontal: 6, vertical: 4),
-                      child: const Center(child: Text('添加到列表中')),
+                      child: Center(
+                          child: FutureBuilder(
+                              future: notifier.getWordState(info.id),
+                              builder: (context, snap) {
+                                final has = snap.data == true;
+                                return Text(has ? '已添加' : '添加到列表中');
+                              })),
                       onTap: () {
+                        final homeNotifier = context.read<HomeListNotifier>();
                         notifier
-                          ..download(info.id, info.offlinedata)
-                          ..addDict(info);
+                            .loadAndAdd(info.id, info.offlinedata, info)
+                            .whenComplete(homeNotifier.load);
                       },
                     ),
                   )

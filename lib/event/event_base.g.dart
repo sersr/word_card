@@ -19,7 +19,7 @@ enum DictEventMessage {
   updateDict,
   getVoicePath,
   openVoiceHive,
-  openDict
+  getWord
 }
 
 abstract class DictEventResolveMain extends DictEvent
@@ -53,7 +53,7 @@ mixin DictEventResolve on Resolve, DictEvent implements DictEventDynamic {
     _updateDict_9,
     _getVoicePath_10,
     _openVoiceHive_11,
-    _openDict_12
+    _getWord_12
   ]);
 
   @override
@@ -81,7 +81,7 @@ mixin DictEventResolve on Resolve, DictEvent implements DictEventDynamic {
       getDictInfoLists(args);
   FutureOr<bool?> _getWordsState_2(args) => getWordsState(args);
   FutureOr<int?> _downloadDict_3(args) => downloadDict(args[0], args[1]);
-  Stream<List<Words>> _getWordsData_4(args) => getWordsData(args);
+  Stream<List<WordTable>> _getWordsData_4(args) => getWordsData(args);
   FutureOr<List<DictTable>?> _getMainLists_5(args) => getMainLists();
   Stream<List<DictTable>> _watchDictLists_6(args) => watchDictLists();
   dynamic _getImageSource_7(args) => getImageSourceDynamic(args);
@@ -89,7 +89,7 @@ mixin DictEventResolve on Resolve, DictEvent implements DictEventDynamic {
   FutureOr<int?> _updateDict_9(args) => updateDict(args[0], args[1]);
   FutureOr<String?> _getVoicePath_10(args) => getVoicePath(args);
   FutureOr<void> _openVoiceHive_11(args) => openVoiceHive(args);
-  FutureOr<void> _openDict_12(args) => openDict(args);
+  FutureOr<WordTable?> _getWord_12(args) => getWord(args);
 }
 
 /// implements [DictEvent]
@@ -113,7 +113,7 @@ mixin DictEventMessager {
     return sendEvent.sendMessage(DictEventMessage.downloadDict, [id, url]);
   }
 
-  Stream<List<Words>> getWordsData(String id) {
+  Stream<List<WordTable>> getWordsData(String id) {
     return sendEvent.sendMessageStream(DictEventMessage.getWordsData, id);
   }
 
@@ -145,7 +145,7 @@ mixin DictEventMessager {
     return sendEvent.sendMessage(DictEventMessage.openVoiceHive, open);
   }
 
-  FutureOr<void> openDict(bool open) async {
-    return sendEvent.sendMessage(DictEventMessage.openDict, open);
+  FutureOr<WordTable?> getWord(String headWord) async {
+    return sendEvent.sendMessage(DictEventMessage.getWord, headWord);
   }
 }

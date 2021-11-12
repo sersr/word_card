@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:nop_db/database/nop.dart';
 import 'package:nop_db/extensions/future_or_ext.dart';
 import 'package:nop_db_sqlite/sqlite.dart';
 import 'package:nop_annotations/nop_annotations.dart';
 import 'package:nop_db/nop_db.dart';
+import 'package:word_card/data/data.dart';
 part 'dict_database.g.dart';
 
 class DictTable extends Table implements Comparable<DictTable> {
@@ -40,11 +43,60 @@ class DictTable extends Table implements Comparable<DictTable> {
   }
 }
 
-@Nop(tables: [DictTable])
+String? _WordsContentWordToMap(WordsContentWord? data) {
+  if (data != null) {
+    return jsonEncode(data.toJson());
+  }
+}
+
+WordsContentWord? _WordsContentWordToTable(String? text) {
+  if (text != null) {
+    final data = jsonDecode(text);
+    return WordsContentWord.fromJson(data);
+  }
+}
+
+/// [bookId]、[headWord] 做为唯一码
+class WordTable extends Table {
+  WordTable({
+    this.id,
+    this.wordRank,
+    this.headWord,
+    this.content,
+    this.bookId,
+  });
+
+  @NopItem(primaryKey: true)
+  int? id;
+  int? wordRank;
+  String? headWord;
+  @NopItem(type: String)
+  WordsContentWord? content;
+  String? bookId;
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _WordTable_toJson(this);
+  }
+}
+
+@Nop(tables: [DictTable, WordTable])
 class DictDatabase extends _GenDictDatabase {
   DictDatabase(this.path);
   final String path;
+  final int version = 2;
+
   FutureOr<void> initDb() {
-    return NopDatabaseImpl.open(path, onCreate: onCreate).then(setDb);
+    return NopDatabaseImpl.open(path,
+            version: version, onCreate: onCreate, onUpgrade: onUpgrade)
+        .then(setDb);
+  }
+
+  @override
+  FutureOr<void> onUpgrade(
+      NopDatabase db, int oldVersion, int newVersion) async {
+    if (newVersion == 2) {
+      await db.execute(wordTable.createTable());
+    }
   }
 }

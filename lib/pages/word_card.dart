@@ -5,6 +5,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:useful_tools/useful_tools.dart';
+import 'package:word_card/database/dict_database.dart';
 
 import '../data/words.dart';
 import '../provider/home_list.dart';
@@ -106,7 +107,7 @@ class WordCard extends StatefulWidget {
       required this.currentIndex,
       required this.dictId})
       : super(key: key);
-  final List<Words> words;
+  final List<WordTable> words;
   final int currentIndex;
   final String dictId;
   @override
@@ -417,13 +418,13 @@ class _WordCardState extends State<WordCard> {
         itemBuilder: (context, index) {
           final data = widget.words[index];
           final content = data.content;
-          final trans = content?.word?.content?.trans;
-          final sentence = content?.word?.content?.sentence;
-          final word = content?.word?.wordHead;
-          final usphone = content?.word?.content?.usphone;
-          final ukphone = content?.word?.content?.ukphone;
-          final usspeech = content?.word?.content?.usspeech;
-          final ukspeech = content?.word?.content?.ukspeech;
+          final trans = content?.content?.trans;
+          final sentence = content?.content?.sentence;
+          final word = content?.wordHead;
+          final usphone = content?.content?.usphone;
+          final ukphone = content?.content?.ukphone;
+          final usspeech = content?.content?.usspeech;
+          final ukspeech = content?.content?.ukspeech;
           final tranCn = trans?.map((e) => e?.tranCn).whereType<String>();
           final tranOther = trans?.map((e) => e?.tranOther).whereType<String>();
 
@@ -432,11 +433,11 @@ class _WordCardState extends State<WordCard> {
           final sentences = sentence?.sentences;
           final showSentences = sentences != null;
 
-          final realSentence = content?.word?.content?.realExamSentence;
+          final realSentence = content?.content?.realExamSentence;
           final realDesc = realSentence?.desc;
           final realSentences = realSentence?.sentences;
           final showRealSentences = realSentences != null;
-          final syno = content?.word?.content?.syno;
+          final syno = content?.content?.syno;
           return SingleChildScrollView(
               controller: ScrollController(),
               child: Container(
@@ -727,47 +728,53 @@ class SelectWord extends StatefulWidget {
 class _SelectWordState extends State<SelectWord> {
   @override
   Widget build(BuildContext context) {
-    final data = widget.notifier.data;
-    Words? words;
-    try {
-      words = data?.firstWhere(
-          (element) => element.content?.word?.wordHead == widget.word);
-    } catch (e) {
-      Log.i(e);
-    }
-    if (data == null || words == null) {
-      return SizedBox(
-          height: 40,
-          child: Center(child: Text('在本词汇书中没有${widget.word},后续会支持检索其他词汇书')));
-    }
+    return FutureBuilder<WordTable?>(
+      future: widget.notifier.getWord(widget.word),
+      builder: (context, snap) {
+        if (snap.connectionState != ConnectionState.done) {
+          return loadingIndicator();
+        }
 
-    final content = words.content;
-    final trans = content?.word?.content?.trans;
+        final data = widget.notifier.data;
+        WordTable? words = snap.data;
 
-    final word = content?.word?.wordHead;
-    final usphone = content?.word?.content?.usphone;
-    final ukphone = content?.word?.content?.ukphone;
-    final usspeech = content?.word?.content?.usspeech;
-    final ukspeech = content?.word?.content?.ukspeech;
-    final tranCn = trans?.map((e) => e?.tranCn).whereType<String>();
-    final tranOther = trans?.map((e) => e?.tranOther).whereType<String>();
+        if (data == null || words == null) {
+          return SizedBox(
+              height: 40,
+              child: Center(child: Text('在本地中没有找到${widget.word}')));
+        }
 
-    final showTran = tranCn != null || tranOther != null;
-    return SingleChildScrollView(
-        controller: ScrollController(),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              wordWidget(word, usphone, ukphone, usspeech, ukspeech),
-              if (showTran) const SizedBox(height: 5),
-              if (showTran) tranWidget(tranCn, tranOther),
-            ],
-          ),
-        ));
+        final content = words.content;
+        final trans = content?.content?.trans;
+
+        final word = content?.wordHead;
+        final usphone = content?.content?.usphone;
+        final ukphone = content?.content?.ukphone;
+        final usspeech = content?.content?.usspeech;
+        final ukspeech = content?.content?.ukspeech;
+        final tranCn = trans?.map((e) => e?.tranCn).whereType<String>();
+        final tranOther = trans?.map((e) => e?.tranOther).whereType<String>();
+
+        final showTran = tranCn != null || tranOther != null;
+        return SingleChildScrollView(
+            controller: ScrollController(),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  wordWidget(word, usphone, ukphone, usspeech, ukspeech),
+                  if (showTran) const SizedBox(height: 5),
+                  if (showTran) tranWidget(tranCn, tranOther),
+                  const SizedBox(height: 10)
+                ],
+              ),
+            ));
+      },
+    );
   }
 
+  /// copy
   Widget wordWidget(String? word, String? usphone, String? ukphone,
       String? usspeech, String? ukspeech) {
     return Bannel(

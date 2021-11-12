@@ -14,25 +14,22 @@ class WordCardNotifier extends ChangeNotifier {
   WordCardNotifier(this.repository);
   final Repository repository;
 
-  List<Words>? _cache;
-  List<Words>? get data => _cache;
+  List<WordTable>? _cache;
+  List<WordTable>? get data => _cache;
 
   DictEvent get event => repository;
   StreamSubscription? _sub;
   Future<void> _loadData(String id) async {
-    final cache = <Words>[];
+    final cache = <WordTable>[];
     final completer = Completer<void>();
     _sub?.cancel();
     _sub = event.getWordsData(id).listen((event) {
       cache.addAll(event);
-      Log.i('add');
     }, onDone: () {
-      Log.w('done');
       if (!completer.isCompleted) {
         completer.complete();
       }
     }, onError: (e) {
-      Log.w('onError');
       if (!completer.isCompleted) {
         completer.complete();
       }
@@ -68,7 +65,8 @@ class WordCardNotifier extends ChangeNotifier {
 
   void playSentence(String? sentence) {
     if (sentence == null) return;
-    final tranSentence = sentence.trim().replaceAll('\u3000', ' ').replaceAll(' ', '+');
+    final tranSentence =
+        sentence.trim().replaceAll('\u3000', ' ').replaceAll(' ', '+');
     play('$tranSentence&type=2');
   }
 
@@ -108,9 +106,14 @@ class WordCardNotifier extends ChangeNotifier {
 
   void openVoiceHive(bool open) {
     EventQueue.runTaskOnQueue(audiopalyer, () async {
-      await event.openDict(!open);
+      // await event.openDict(!open);
       await event.openVoiceHive(open);
     });
+  }
+
+  Future<WordTable?> getWord(String? headWord) async {
+    if (headWord == null) return null;
+    return event.getWord(headWord);
   }
 
   @override
