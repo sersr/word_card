@@ -173,16 +173,23 @@ class BookLibraryNotifier extends ChangeNotifier {
     }
   }
 
-  Future<void> download(String? id, String? url) {
-    Log.i('$id, $url');
-    return EventQueue.runOneTaskOnQueue([download, id, url], () async {
-      if (id == null || url == null) return;
-      await repository!.event.downloadDict(id, url);
-    });
-  }
+  // Future<void> download(String? id, String? url) {
+  //   Log.i('$id, $url');
+  //   return EventQueue.runOneTaskOnQueue([download, id, url], () async {
+  //     if (id == null || url == null) return;
+  //     await repository!.event.downloadDict(id, url);
+  //   });
+  // }
 
+  Map<String, bool> _idState = {};
   Future<bool> getWordState(String? id) async {
-    return id != null && await repository!.event.getWordsState(id) == true;
+    if (id == null) return false;
+    var state = _idState[id];
+    if (state != null) {
+      return state;
+    }
+    state = await repository!.event.getWordsState(id) == true;
+    return _idState.putIfAbsent(id, () => state!);
   }
 
   Future<void> loadAndAdd(
@@ -191,6 +198,7 @@ class BookLibraryNotifier extends ChangeNotifier {
       if (id == null || url == null) return;
       await repository!.event.downloadDict(id, url);
       await addDict(info);
+      _idState.remove(id);
       notifyListeners();
     });
   }

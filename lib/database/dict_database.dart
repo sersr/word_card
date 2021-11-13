@@ -6,6 +6,7 @@ import 'package:nop_db/extensions/future_or_ext.dart';
 import 'package:nop_db_sqlite/sqlite.dart';
 import 'package:nop_annotations/nop_annotations.dart';
 import 'package:nop_db/nop_db.dart';
+import 'package:useful_tools/common.dart';
 import 'package:word_card/data/data.dart';
 part 'dict_database.g.dart';
 
@@ -56,6 +57,13 @@ WordsContentWord? _WordsContentWordToTable(String? text) {
   }
 }
 
+WordsContentWord? toTable(String? text) {
+  if (text != null) {
+    final data = jsonDecode(text);
+    return WordsContentWord.fromJson(data);
+  }
+}
+
 /// [bookId]、[headWord] 做为唯一码
 class WordTable extends Table {
   WordTable({
@@ -85,11 +93,27 @@ class DictDatabase extends _GenDictDatabase {
   DictDatabase(this.path);
   final String path;
   final int version = 2;
+  final String index = 'word_index';
 
   FutureOr<void> initDb() {
     return NopDatabaseImpl.open(path,
             version: version, onCreate: onCreate, onUpgrade: onUpgrade)
-        .then(setDb);
+        .then(setDb)
+        .whenComplete(() {
+      return db.rawQuery(
+          'select count(*) From sqlite_master where type = ? and name = ?',
+          ['index', index]).then((value) {
+        Log.i(value, onlyDebug: false);
+        if (value.first.values.first == 0) {
+          // db.execute('drop INDEX $index');
+          // db.execute('drop INDEX $indexBookid');
+          db.execute(
+              'CREATE INDEX $index on ${wordTable.table}(${wordTable.headWord})');
+          // db.execute(
+          //     'CREATE INDEX $indexBookid on ${wordTable.table}( ${wordTable.bookId})');
+        }
+      });
+    });
   }
 
   @override

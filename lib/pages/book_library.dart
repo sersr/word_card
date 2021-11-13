@@ -149,11 +149,18 @@ class _BookLibraryState extends State<BookLibrary> {
   }
 }
 
-class ImageItemLayout extends StatelessWidget {
+class ImageItemLayout extends StatefulWidget {
   const ImageItemLayout({Key? key, required this.info, required this.notifier})
       : super(key: key);
   final BookInfoDataNormalBooksInfo info;
   final BookLibraryNotifier notifier;
+
+  @override
+  State<ImageItemLayout> createState() => _ImageItemLayoutState();
+}
+
+class _ImageItemLayoutState extends State<ImageItemLayout> {
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -162,7 +169,7 @@ class ImageItemLayout extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(
-            child: ImageBuilder(url: info.cover, height: 90, width: 67),
+            child: ImageBuilder(url: widget.info.cover, height: 90, width: 67),
             width: 67,
           ),
           Expanded(
@@ -177,8 +184,9 @@ class ImageItemLayout extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('${info.title}'),
-                      Text('${info.tags?.map((e) => e?.tagName).join()}'),
+                      Text('${widget.info.title}'),
+                      Text(
+                          '${widget.info.tags?.map((e) => e?.tagName).join()}'),
                     ],
                   )),
                   Padding(
@@ -188,23 +196,25 @@ class ImageItemLayout extends StatelessWidget {
                       radius: 8,
                       padding: const EdgeInsets.symmetric(
                           horizontal: 6, vertical: 4),
-                      child: Center(
-                          child: FutureBuilder(
-                              future: notifier.getWordState(info.id),
-                              builder: (context, snap) {
-                                final has = snap.data == true;
-                                return Text(has ? '已添加' : '添加到列表中');
-                              })),
+                      child: RepaintBoundary(
+                        child: Center(
+                            child: FutureBuilder(
+                                future: widget.notifier
+                                    .getWordState(widget.info.id),
+                                builder: (context, snap) {
+                                  final has = snap.data == true;
+                                  return Text(has ? '已添加' : '添加到列表中');
+                                })),
+                      ),
                       onTap: () {
                         final homeNotifier = context.read<HomeListNotifier>();
-                        notifier
-                            .loadAndAdd(info.id, info.offlinedata, info)
+                        widget.notifier
+                            .loadAndAdd(widget.info.id, widget.info.offlinedata,
+                                widget.info)
                             .whenComplete(homeNotifier.load);
                       },
                     ),
                   )
-                  //   ],
-                  // )
                 ],
               ),
             ),

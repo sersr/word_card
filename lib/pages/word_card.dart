@@ -1,13 +1,12 @@
 // ignore_for_file: prefer_const_constructors
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:useful_tools/useful_tools.dart';
-import 'package:word_card/database/dict_database.dart';
 
 import '../data/words.dart';
+import '../database/dict_database.dart';
 import '../provider/home_list.dart';
 import '../provider/word_card.dart';
 import '../widgets/search_fake.dart';
@@ -135,6 +134,7 @@ class _WordCardState extends State<WordCard> {
   Widget genTrans(String lan, Iterable<String?>? data) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         Text(
           '$lan: ',
@@ -692,8 +692,9 @@ class WordCardSelectionState extends State<WordCardSelection> {
                 height: 240,
                 color: Colors.white,
                 padding: const EdgeInsets.only(top: 8),
-                child:
-                    Scaffold(body: SelectWord(word: word, notifier: notifier)),
+                child: Scaffold(
+                    body: RepaintBoundary(
+                        child: SelectWord(word: word, notifier: notifier))),
               );
             }).then((_) {
           if (mounted) {
@@ -740,8 +741,7 @@ class _SelectWordState extends State<SelectWord> {
 
         if (data == null || words == null) {
           return SizedBox(
-              height: 40,
-              child: Center(child: Text('在本地中没有找到${widget.word}')));
+              height: 40, child: Center(child: Text('在本地中没有找到${widget.word}')));
         }
 
         final content = words.content;

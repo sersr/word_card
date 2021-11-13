@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:isolate';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
@@ -105,27 +106,34 @@ class DictEventIsolate extends DictEventResolveMain with DatabaseMixin {
     }
   }
 
+  /// TODO: 实现懒加载
   @override
   Stream<List<WordTable>> getWordsData(String id) {
     final stream = StreamController<List<WordTable>>();
     Timer.run(() async {
-      final query = db.wordTable.query.all..where.bookId.equalTo(id);
-      final data = await query.goToTable;
-      final list = <WordTable>[];
-      for (var item in data) {
-        if (list.length > 30) {
-          stream.add(List.of(list));
-          list.clear();
-          await releaseUI;
+      final stop = Stopwatch()..start();
+      try {
+        final query = db.wordTable.query
+          // ..index.by(db.indexBookid)
+          ..index.notIndexed
+          ..select.all
+          ..where.bookId.equalTo(id);
+        Log.i(query);
+        final prepare = query.prepare;
+        final data = await prepare.goToTable;
+        await prepare.dispose();
+        // final data = await query.goToTable;
+
+        final max = data.length;
+        for (var i = 0; i < max;) {
+          final end = math.min(i + 100, max);
+          stream.add(data.sublist(i, end));
+          i = end;
         }
-        list.add(item);
+      } finally {
+        stream.close();
+        Log.i('done: ${stop.elapsedMicroseconds / 1000} ms', onlyDebug: false);
       }
-      if (list.isNotEmpty) {
-        stream.add(List.of(list));
-        list.clear();
-      }
-      stream.close();
-      Log.i('done');
     });
     return stream.stream;
   }
@@ -212,55 +220,56 @@ class DictEventIsolate extends DictEventResolveMain with DatabaseMixin {
 
   FutureOr<List<WordTable>> _getWord(String headWord) {
     final query = db.wordTable.query.all
+      ..index.by(db.index)
       ..where.headWord.equalTo(headWord).limit.withValue(1);
+    Log.i(query.args);
     return query.goToTable;
   }
 
+  /// 建立 索引 可以将耗时降低到 10ms 左右
+  /// TODO: 有没有词形还原的工具？
   @override
   FutureOr<WordTable?> getWord(String headWord) async {
-    var words = await _getWord(headWord);
-    Future<void> _dd(String headWord) async {
-      Log.i('actual: $headWord', onlyDebug: false);
-      words = await _getWord(headWord);
-    }
+    List<WordTable> words = const [];
+    final stop = Stopwatch()..start();
 
-    if (words.isEmpty) {
-      await _dd(headWord);
-    }
-    if (words.isEmpty) {
-      headWord = headWord.toLowerCase();
-      await _dd(headWord);
+    final queryList = <String>{};
+    queryList.add(headWord);
+    final _headWord = headWord.toLowerCase();
 
-      /// TODO: 有没有词形还原的工具？
-      if (words.isEmpty) {
-        var word = headWord.replaceFirst(RegExp('(d|ing|s)\$'), '');
+    queryList.add(_headWord);
+    void add(String headWord) {
+      var word = headWord.replaceFirst(RegExp('(d|ing|s)\$'), '');
 
-        await _dd(word);
-
-        if (words.isEmpty) {
-          final old = word;
-          word = headWord.replaceFirst(RegExp('(ed|es)\$'), '');
-
-          await _dd(word);
-          // if (words.isEmpty) {
-            if (words.isEmpty) {
-              final l = word.length;
-              if (l >= 2 && word[l - 2] == word[l - 1]) {
-                final old = word;
-                word = word.substring(0, l - 1);
-                await _dd(word);
-                word = old;
-              }
-              word = '${old}e';
-              await _dd(word);
-            }
-          // }
-        }
+      final l = word.length;
+      if (l >= 2 && word[l - 2] == word[l - 1]) {
+        queryList.add(word.substring(0, l - 1));
       }
+
+      queryList.add(word);
+
+      const list = ['e', 'y'];
+      for (var item in list) {
+        word = '$word$item';
+        queryList.add(word);
+      }
+      word = headWord.replaceFirst(RegExp('(ed|es|ies)\$'), '');
+      queryList.add(word);
     }
-    if (words.isNotEmpty) {
-      Log.i(words.last.content?.wordId);
+
+    add(headWord);
+    if (headWord != _headWord) {
+      add(_headWord);
     }
+
+    var count = 0;
+    for (final item in queryList) {
+      count++;
+      words = await _getWord(item);
+      if (words.isNotEmpty) break;
+    }
+    Log.i('use: $count ${stop.elapsedMicroseconds / 1000} ms',
+        onlyDebug: false);
     return words.isEmpty ? null : words.last;
   }
 }
