@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:useful_tools/useful_tools.dart';
@@ -14,7 +16,7 @@ class HomeApp extends StatefulWidget {
   _HomeAppState createState() => _HomeAppState();
 }
 
-class _HomeAppState extends State<HomeApp> {
+class _HomeAppState extends State<HomeApp> with WidgetsBindingObserver {
   late HomeListNotifier provider;
   final scrollController = ScrollController();
   bool first = true;
@@ -26,6 +28,40 @@ class _HomeAppState extends State<HomeApp> {
       first = false;
       provider.repository.init();
       provider.load();
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance!.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance!.removeObserver(this);
+    super.dispose();
+  }
+
+  var inApp = true;
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    inApp = state.index <= AppLifecycleState.inactive.index;
+    Log.w('state: $state | $inApp', onlyDebug: false);
+    if (mounted) {
+      final repository = provider.repository;
+      if (state == AppLifecycleState.resumed) {
+        repository.init();
+      }
+    }
+  }
+
+  @override
+  void didHaveMemoryPressure() {
+    super.didHaveMemoryPressure();
+    if (mounted && !inApp) {
+      provider.repository.close();
     }
   }
 
@@ -42,9 +78,18 @@ class _HomeAppState extends State<HomeApp> {
               const Expanded(child: SearchFake(hint: '查询中文或英文')),
               Container(
                 padding: const EdgeInsets.only(left: 12, right: 6),
-                child: const Icon(
-                  Icons.add_alarm,
-                  color: Color.fromRGBO(120, 120, 120, 1),
+                child: btn1(
+                  onTap: () {
+                    if (provider.repository.initStatus.value) {
+                      provider.repository.close();
+                    } else {
+                      provider.repository.init();
+                    }
+                  },
+                  child: const Icon(
+                    Icons.add_alarm,
+                    color: Color.fromRGBO(120, 120, 120, 1),
+                  ),
                 ),
               ),
             ],

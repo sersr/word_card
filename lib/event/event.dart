@@ -10,7 +10,7 @@ Future<void> isolateDictEvent(List args) async {
   final path = args[1] as String;
   final rcPort = ReceivePort();
 
-  final eventImpl = DictEventIsolate(path: path);
+  final eventImpl = DictEventIsolate(path: path, sp: sendPort);
   await eventImpl.init();
 
   rcPort.listen((message) {

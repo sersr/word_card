@@ -19,23 +19,46 @@ import '../tools/hive_cache.dart';
 import 'event_base.dart';
 
 /// 实现类
-class DictEventIsolate extends DictEventResolveMain with DatabaseMixin {
-  DictEventIsolate({required this.path});
+class DictEventIsolate extends DictEventResolveMain
+    with DatabaseMixin, NetMixin {
+  DictEventIsolate({required this.path, this.sp});
   @override
   final String path;
+
+  FutureOr<void> init() {
+    initNet();
+    return initDb();
+  }
+
+  @override
+  FutureOr<bool> onClose() async {
+    closeNet();
+    await closeDb();
+    return true;
+  }
+
+  /// [SendEventMixin] 要使用的 SendPort
+  @override
+  final SendPort? sp;
+}
+
+mixin NetMixin on DictEvent, DatabaseMixin, DictEventDynamic {
   late Dio dio;
   late String voicePath;
+
   // 执行初始化任务
-  Future<void> init() async {
+  void initNet() {
     Hive.init(path);
     voicePath = join(path, 'voice');
     dio = Dio(BaseOptions(
         connectTimeout: 30000, sendTimeout: 30000, receiveTimeout: 30000));
-    // openDict(true);
-    return initDb();
   }
 
-  /// TODO: 为了方便检索单词，存储方式Hive修改为sqlite
+  void closeNet() {
+    dio.close();
+    Hive.close();
+  }
+
   @override
   FutureOr<int?> downloadDict(String id, String url) async {
     if (await getWordsState(id)) return null;
@@ -104,38 +127,6 @@ class DictEventIsolate extends DictEventResolveMain with DatabaseMixin {
     } catch (e) {
       Log.e(e, onlyDebug: false);
     }
-  }
-
-  /// TODO: 实现懒加载
-  @override
-  Stream<List<WordTable>> getWordsData(String id) {
-    final stream = StreamController<List<WordTable>>();
-    Timer.run(() async {
-      final stop = Stopwatch()..start();
-      try {
-        final query = db.wordTable.query
-          // ..index.by(db.indexBookid)
-          ..index.notIndexed
-          ..select.all
-          ..where.bookId.equalTo(id);
-        Log.i(query);
-        final prepare = query.prepare;
-        final data = await prepare.goToTable;
-        await prepare.dispose();
-        // final data = await query.goToTable;
-
-        final max = data.length;
-        for (var i = 0; i < max;) {
-          final end = math.min(i + 100, max);
-          stream.add(data.sublist(i, end));
-          i = end;
-        }
-      } finally {
-        stream.close();
-        Log.i('done: ${stop.elapsedMicroseconds / 1000} ms', onlyDebug: false);
-      }
-    });
-    return stream.stream;
   }
 
   @override
@@ -217,6 +208,101 @@ class DictEventIsolate extends DictEventResolveMain with DatabaseMixin {
     });
     return filePath;
   }
+}
+
+mixin DatabaseMixin on DictEvent {
+  String get path;
+  final name = 'dict_words.nopdb';
+
+  late final db = DictDatabase(join(path, name));
+  FutureOr<void> initDb() {
+    const fs = LocalFileSystem();
+    final dir = fs.currentDirectory.childDirectory(path);
+    if (!dir.existsSync()) {
+      dir.createSync(recursive: true);
+    }
+    return db.initDb();
+  }
+
+  FutureOr<void> closeDb() {
+    return db.dispose();
+  }
+
+  @override
+  FutureOr<List<DictTable>> getMainLists() {
+    return db.dictTable.query.all.where.show
+        .equalTo(true)
+        .back
+        .whereEnd
+        .goToTable;
+  }
+
+  @override
+  Stream<List<DictTable>> watchDictLists() {
+    return db.dictTable.query.all.where.show
+        .equalTo(true)
+        .back
+        .whereEnd
+        .watchToTable;
+  }
+
+  @override
+  FutureOr<int?> addDict(DictTable dict) {
+    assert(dict.dictId != null);
+    final queryCount = db.dictTable.query
+      ..select.count.all.push
+      ..where.dictId.equalTo(dict.dictId!);
+    return queryCount.go.then((v) {
+      var count = 0;
+      try {
+        final first = v.first.values.first;
+        if (first is int) {
+          count = first;
+        }
+      } catch (e) {
+        Log.w(e);
+      }
+      if (count > 0) return -1;
+      return db.dictTable.insert.insertTable(dict).go;
+    });
+  }
+
+  @override
+  FutureOr<int?> updateDict(String dictId, DictTable dict) {
+    final update = db.dictTable.update..where.dictId.equalTo(dictId);
+    db.dictTable.updateDictTable(update, dict);
+    return update.go;
+  }
+
+  /// TODO: 实现懒加载
+  @override
+  Stream<List<WordTable>> getWordsData(String id) {
+    final stream = StreamController<List<WordTable>>();
+    Timer.run(() async {
+      final stop = Stopwatch()..start();
+      try {
+        final query = db.wordTable.query
+          ..index.notIndexed
+          ..select.all
+          ..where.bookId.equalTo(id);
+        Log.i(query);
+        final prepare = query.prepare;
+        final data = await prepare.goToTable;
+        await prepare.dispose();
+
+        final max = data.length;
+        for (var i = 0; i < max;) {
+          final end = math.min(i + 100, max);
+          stream.add(data.sublist(i, end));
+          i = end;
+        }
+      } finally {
+        stream.close();
+        Log.i('done: ${stop.elapsedMicroseconds / 1000} ms', onlyDebug: false);
+      }
+    });
+    return stream.stream;
+  }
 
   FutureOr<List<WordTable>> _getWord(String headWord) {
     final query = db.wordTable.query.all
@@ -271,67 +357,6 @@ class DictEventIsolate extends DictEventResolveMain with DatabaseMixin {
     Log.i('use: $count ${stop.elapsedMicroseconds / 1000} ms',
         onlyDebug: false);
     return words.isEmpty ? null : words.last;
-  }
-}
-
-mixin DatabaseMixin on DictEvent {
-  String get path;
-  final name = 'dict_words.nopdb';
-
-  late final db = DictDatabase(join(path, name));
-  FutureOr<void> initDb() {
-    const fs = LocalFileSystem();
-    final dir = fs.currentDirectory.childDirectory(path);
-    if (!dir.existsSync()) {
-      dir.createSync(recursive: true);
-    }
-    return db.initDb();
-  }
-
-  @override
-  FutureOr<List<DictTable>> getMainLists() {
-    return db.dictTable.query.all.where.show
-        .equalTo(true)
-        .back
-        .whereEnd
-        .goToTable;
-  }
-
-  @override
-  Stream<List<DictTable>> watchDictLists() {
-    return db.dictTable.query.all.where.show
-        .equalTo(true)
-        .back
-        .whereEnd
-        .watchToTable;
-  }
-
-  @override
-  FutureOr<int?> addDict(DictTable dict) {
-    assert(dict.dictId != null);
-    final queryCount = db.dictTable.query
-      ..select.count.all.push
-      ..where.dictId.equalTo(dict.dictId!);
-    return queryCount.go.then((v) {
-      var count = 0;
-      try {
-        final first = v.first.values.first;
-        if (first is int) {
-          count = first;
-        }
-      } catch (e) {
-        Log.w(e);
-      }
-      if (count > 0) return -1;
-      return db.dictTable.insert.insertTable(dict).go;
-    });
-  }
-
-  @override
-  FutureOr<int?> updateDict(String dictId, DictTable dict) {
-    final update = db.dictTable.update..where.dictId.equalTo(dictId);
-    db.dictTable.updateDictTable(update, dict);
-    return update.go;
   }
 
   FutureOr<void> _addAllDictWord(List<String> divDatas, id) async {

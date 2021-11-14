@@ -5,75 +5,62 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:nop_db/nop_db.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:utils/event_queue.dart';
+import 'package:utils/utils.dart';
 
 import 'event.dart';
 import 'event_base.dart';
 
-class Repository extends DictEventMessagerMain with SendEventPortMixin {
+class Repository extends DictEventMessagerMain
+    with SendEventMixin, SendIsolateMixin {
   @override
   SendEvent get sendEvent => this;
-  SendPort? _sdPort;
 
-  Isolate? _isolate;
   final _initStatus = ValueNotifier(false);
 
   ValueListenable<bool> get initStatus => _initStatus;
 
-  set isolate(Isolate? newIsolate) {
-    if (_isolate == newIsolate) return;
-    if (_isolate != null) {
-      _isolate!.kill(priority: Isolate.immediate);
-    }
-    _isolate = newIsolate;
-    _initStatus.value = _isolate != null;
-  }
-
-  final _penddingEvents = [];
   @override
-  void send(message) {
-    if (_sdPort == null) {
-      _penddingEvents.add(message);
-      return;
-    }
-    _sdPort!.send(message);
+  void notifiyState(bool init) {
+    _initStatus.value = init;
   }
 
-  Future<void> init() {
-    return EventQueue.runTaskOnQueue(this, _init);
-  }
-
-  Future<void> _init() async {
-    _initStatus.value = _isolate != null;
-    if (initStatus.value) return;
+  @override
+  Future<Isolate> onCreateIsolate(SendPort sendPort) async {
     final appPath = await getApplicationDocumentsDirectory();
-    final rcPort = ReceivePort();
     final newIsolate =
-        await Isolate.spawn(isolateDictEvent, [rcPort.sendPort, appPath.path]);
-    await onDone(rcPort);
-    isolate = newIsolate;
+        await Isolate.spawn(isolateDictEvent, [sendPort, appPath.path]);
+    return newIsolate;
   }
 
-  Future<void> onDone(ReceivePort rcPort) async {
-    _sdPort = await rcPort.first;
-    if (_penddingEvents.isNotEmpty) {
-      final events = List.of(_penddingEvents);
-      _penddingEvents.clear();
-      events.forEach(send);
-    }
-  }
+  /// [SendEventPortMixin]
+  // @override
+  // Future<SendPort> onDone(ReceivePort rcPort) async {
+  //   return await rcPort.first;
+  // }
 
-  Future<void> close() {
-    return EventQueue.runTaskOnQueue(this, dispose);
-  }
-
+  /// [SendEventMixin]
   @override
-  void dispose() {
-    _sdPort = null;
-    _isolate = null;
-    super.dispose();
+  Future<SendPort> onDone(ReceivePort rcPort) async {
+    final completer = Completer<SendPort>();
+    listen(completer, rcPort);
+    return completer.future;
   }
 
+  void listen(Completer<SendPort>? completer, ReceivePort rcPort) {
+    rcPort.listen((message) {
+      if (add(message)) return;
+      if (message is SendPort) {
+        if (completer != null) {
+          completer!.complete(message);
+          completer = null;
+          return;
+        }
+      }
+      Log.w('error: $message', onlyDebug: false);
+    });
+  }
+
+  /// 网络图片
   @override
   Future<Uint8List?> getImageSource(String url) async {
     final data = await getImageSourceDynamic(url);
@@ -83,7 +70,4 @@ class Repository extends DictEventMessagerMain with SendEventPortMixin {
       return data;
     }
   }
-
-  /// Impl
-
 }
