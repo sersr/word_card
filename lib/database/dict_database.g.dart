@@ -6,14 +6,15 @@ part of 'dict_database.dart';
 // Generator: GenNopGeneratorForAnnotation
 // **************************************************************************
 
+// ignore_for_file: curly_braces_in_flow_control_structures
 abstract class _GenDictDatabase extends $Database {
   late final _tables = <DatabaseTable>[dictTable, wordTable];
 
   @override
   List<DatabaseTable> get tables => _tables;
 
-  late final dictTable = _GenDictTable(this);
-  late final wordTable = _GenWordTable(this);
+  late final dictTable = GenDictTable(this);
+  late final wordTable = GenWordTable(this);
 }
 
 Map<String, dynamic> _DictTable_toJson(DictTable table) {
@@ -29,8 +30,8 @@ Map<String, dynamic> _DictTable_toJson(DictTable table) {
   };
 }
 
-class _GenDictTable extends DatabaseTable<DictTable, _GenDictTable> {
-  _GenDictTable($Database db) : super(db);
+class GenDictTable extends DatabaseTable<DictTable, GenDictTable> {
+  GenDictTable($Database db) : super(db);
 
   @override
   final table = 'DictTable';
@@ -44,7 +45,7 @@ class _GenDictTable extends DatabaseTable<DictTable, _GenDictTable> {
   final dataIndex = 'dataIndex';
 
   void updateDictTable(
-      UpdateStatement<DictTable, _GenDictTable> update, DictTable dictTable) {
+      UpdateStatement<DictTable, GenDictTable> update, DictTable dictTable) {
     if (dictTable.id != null) update.id.set(dictTable.id);
 
     if (dictTable.dictId != null) update.dictId.set(dictTable.dictId);
@@ -70,22 +71,22 @@ class _GenDictTable extends DatabaseTable<DictTable, _GenDictTable> {
         '$createTime INTEGER, $dataIndex BLOB)';
   }
 
-  DictTable _toTable(Map<String, dynamic> map) => DictTable(
-      id: map['id'] as int,
-      dictId: map['dictId'] as String,
-      wordIndex: map['wordIndex'] as int,
+  static DictTable mapToTable(Map<String, dynamic> map) => DictTable(
+      id: map['id'] as int?,
+      dictId: map['dictId'] as String?,
+      wordIndex: map['wordIndex'] as int?,
       show: Table.intToBool(map['show'] as int?),
-      sortKey: map['sortKey'] as int,
-      name: map['name'] as String,
-      createTime: map['createTime'] as int,
-      dataIndex: map['dataIndex'] as List<int>);
+      sortKey: map['sortKey'] as int?,
+      name: map['name'] as String?,
+      createTime: map['createTime'] as int?,
+      dataIndex: map['dataIndex'] as List<int>?);
 
   @override
   List<DictTable> toTable(Iterable<Map<String, Object?>> query) =>
-      query.map((e) => _toTable(e)).toList();
+      query.map((e) => mapToTable(e)).toList();
 }
 
-extension ItemExtensionDictTable<T extends ItemExtension<_GenDictTable>> on T {
+extension ItemExtensionDictTable<T extends ItemExtension<GenDictTable>> on T {
   T get id => item(table.id) as T;
 
   T get dictId => item(table.dictId) as T;
@@ -102,39 +103,39 @@ extension ItemExtensionDictTable<T extends ItemExtension<_GenDictTable>> on T {
 
   T get dataIndex => item(table.dataIndex) as T;
 
-  T get dictTable_id => id;
+  T get genDictTable_id => id;
 
-  T get dictTable_dictId => dictId;
+  T get genDictTable_dictId => dictId;
 
-  T get dictTable_wordIndex => wordIndex;
+  T get genDictTable_wordIndex => wordIndex;
 
-  T get dictTable_show => show;
+  T get genDictTable_show => show;
 
-  T get dictTable_sortKey => sortKey;
+  T get genDictTable_sortKey => sortKey;
 
-  T get dictTable_name => name;
+  T get genDictTable_name => name;
 
-  T get dictTable_createTime => createTime;
+  T get genDictTable_createTime => createTime;
 
-  T get dictTable_dataIndex => dataIndex;
+  T get genDictTable_dataIndex => dataIndex;
 }
 
-extension JoinItemDictTable<J extends JoinItem<_GenDictTable>> on J {
-  J get dictTable_id => joinItem(joinTable.id) as J;
+extension JoinItemDictTable<J extends JoinItem<GenDictTable>> on J {
+  J get genDictTable_id => joinItem(joinTable.id) as J;
 
-  J get dictTable_dictId => joinItem(joinTable.dictId) as J;
+  J get genDictTable_dictId => joinItem(joinTable.dictId) as J;
 
-  J get dictTable_wordIndex => joinItem(joinTable.wordIndex) as J;
+  J get genDictTable_wordIndex => joinItem(joinTable.wordIndex) as J;
 
-  J get dictTable_show => joinItem(joinTable.show) as J;
+  J get genDictTable_show => joinItem(joinTable.show) as J;
 
-  J get dictTable_sortKey => joinItem(joinTable.sortKey) as J;
+  J get genDictTable_sortKey => joinItem(joinTable.sortKey) as J;
 
-  J get dictTable_name => joinItem(joinTable.name) as J;
+  J get genDictTable_name => joinItem(joinTable.name) as J;
 
-  J get dictTable_createTime => joinItem(joinTable.createTime) as J;
+  J get genDictTable_createTime => joinItem(joinTable.createTime) as J;
 
-  J get dictTable_dataIndex => joinItem(joinTable.dataIndex) as J;
+  J get genDictTable_dataIndex => joinItem(joinTable.dataIndex) as J;
 }
 
 Map<String, dynamic> _WordTable_toJson(WordTable table) {
@@ -142,13 +143,13 @@ Map<String, dynamic> _WordTable_toJson(WordTable table) {
     'id': table.id,
     'wordRank': table.wordRank,
     'headWord': table.headWord,
-    'content': _WordsContentWordToMap(table.content) as String,
+    'content': _WordsContentWordToMap(table.content),
     'bookId': table.bookId
   };
 }
 
-class _GenWordTable extends DatabaseTable<WordTable, _GenWordTable> {
-  _GenWordTable($Database db) : super(db);
+class GenWordTable extends DatabaseTable<WordTable, GenWordTable> {
+  GenWordTable($Database db) : super(db);
 
   @override
   final table = 'WordTable';
@@ -159,7 +160,7 @@ class _GenWordTable extends DatabaseTable<WordTable, _GenWordTable> {
   final bookId = 'bookId';
 
   void updateWordTable(
-      UpdateStatement<WordTable, _GenWordTable> update, WordTable wordTable) {
+      UpdateStatement<WordTable, GenWordTable> update, WordTable wordTable) {
     if (wordTable.id != null) update.id.set(wordTable.id);
 
     if (wordTable.wordRank != null) update.wordRank.set(wordTable.wordRank);
@@ -177,19 +178,19 @@ class _GenWordTable extends DatabaseTable<WordTable, _GenWordTable> {
         '$headWord TEXT, $content TEXT, $bookId TEXT)';
   }
 
-  WordTable _toTable(Map<String, dynamic> map) => WordTable(
-      id: map['id'] as int,
-      wordRank: map['wordRank'] as int,
-      headWord: map['headWord'] as String,
-      content: _WordsContentWordToTable(map['content'] as String),
-      bookId: map['bookId'] as String);
+  static WordTable mapToTable(Map<String, dynamic> map) => WordTable(
+      id: map['id'] as int?,
+      wordRank: map['wordRank'] as int?,
+      headWord: map['headWord'] as String?,
+      content: _WordsContentWordToTable(map['content']),
+      bookId: map['bookId'] as String?);
 
   @override
   List<WordTable> toTable(Iterable<Map<String, Object?>> query) =>
-      query.map((e) => _toTable(e)).toList();
+      query.map((e) => mapToTable(e)).toList();
 }
 
-extension ItemExtensionWordTable<T extends ItemExtension<_GenWordTable>> on T {
+extension ItemExtensionWordTable<T extends ItemExtension<GenWordTable>> on T {
   T get id => item(table.id) as T;
 
   T get wordRank => item(table.wordRank) as T;
@@ -200,25 +201,25 @@ extension ItemExtensionWordTable<T extends ItemExtension<_GenWordTable>> on T {
 
   T get bookId => item(table.bookId) as T;
 
-  T get wordTable_id => id;
+  T get genWordTable_id => id;
 
-  T get wordTable_wordRank => wordRank;
+  T get genWordTable_wordRank => wordRank;
 
-  T get wordTable_headWord => headWord;
+  T get genWordTable_headWord => headWord;
 
-  T get wordTable_content => content;
+  T get genWordTable_content => content;
 
-  T get wordTable_bookId => bookId;
+  T get genWordTable_bookId => bookId;
 }
 
-extension JoinItemWordTable<J extends JoinItem<_GenWordTable>> on J {
-  J get wordTable_id => joinItem(joinTable.id) as J;
+extension JoinItemWordTable<J extends JoinItem<GenWordTable>> on J {
+  J get genWordTable_id => joinItem(joinTable.id) as J;
 
-  J get wordTable_wordRank => joinItem(joinTable.wordRank) as J;
+  J get genWordTable_wordRank => joinItem(joinTable.wordRank) as J;
 
-  J get wordTable_headWord => joinItem(joinTable.headWord) as J;
+  J get genWordTable_headWord => joinItem(joinTable.headWord) as J;
 
-  J get wordTable_content => joinItem(joinTable.content) as J;
+  J get genWordTable_content => joinItem(joinTable.content) as J;
 
-  J get wordTable_bookId => joinItem(joinTable.bookId) as J;
+  J get genWordTable_bookId => joinItem(joinTable.bookId) as J;
 }

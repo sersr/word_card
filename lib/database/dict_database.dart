@@ -1,13 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:nop_db/database/nop.dart';
-import 'package:nop_db/extensions/future_or_ext.dart';
-import 'package:nop_db_sqlite/sqlite.dart';
 import 'package:nop_annotations/nop_annotations.dart';
 import 'package:nop_db/nop_db.dart';
-import 'package:useful_tools/common.dart';
-import 'package:word_card/data/data.dart';
+import 'package:nop_db_sqlite/sqlite.dart';
+import 'package:useful_tools/useful_tools.dart';
+import 'package:utils/future_or_ext.dart';
+
+import '../data/data.dart';
+
 part 'dict_database.g.dart';
 
 class DictTable extends Table implements Comparable<DictTable> {

@@ -1,11 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:useful_tools/common.dart';
+import 'package:useful_tools/useful_tools.dart';
 import 'package:just_audio/just_audio.dart';
 
-import '../data/data.dart';
 import '../database/dict_database.dart';
 import '../event/event_base.dart';
 import '../event/repository.dart';
@@ -14,17 +12,21 @@ class WordCardNotifier extends ChangeNotifier {
   WordCardNotifier(this.repository);
   final Repository repository;
 
-  List<WordTable>? _cache;
-  List<WordTable>? get data => _cache;
+  final List<WordTable> _cache = <WordTable>[];
+  List<WordTable> get data => _cache;
 
   DictEvent get event => repository;
   StreamSubscription? _sub;
+  bool _done = false;
   Future<void> _loadData(String id) async {
-    final cache = <WordTable>[];
     final completer = Completer<void>();
     _sub?.cancel();
     _sub = event.getWordsData(id).listen((event) {
-      cache.addAll(event);
+      _cache.addAll(event);
+      if (loadIds.isNotEmpty) {
+        notifyListeners();
+        loadIds.clear();
+      }
     }, onDone: () {
       if (!completer.isCompleted) {
         completer.complete();
@@ -37,12 +39,12 @@ class WordCardNotifier extends ChangeNotifier {
     await completer.future;
     _sub?.cancel();
     _sub = null;
-    _cache = cache;
+    _done = true;
     notifyListeners();
   }
 
   Future<void> loadData(String id) async {
-    if (_cache != null) return;
+    if (_done) return;
     Log.w('dict:$id');
 
     return EventQueue.runTaskOnQueue([_loadData, id], () async {
@@ -59,6 +61,13 @@ class WordCardNotifier extends ChangeNotifier {
               wordIndex: currentIndex,
               sortKey: DateTime.now().microsecondsSinceEpoch));
     });
+  }
+
+  final loadIds = <int>[];
+  bool getCurrentState(int index) {
+    if (index <= _cache.length - 1) return true;
+    loadIds.add(index);
+    return false;
   }
 
   final audiopalyer = AudioPlayer();

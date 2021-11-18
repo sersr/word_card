@@ -6,6 +6,8 @@ part of 'event_base.dart';
 // Generator: IsolateEventGeneratorForAnnotation
 // **************************************************************************
 
+// ignore_for_file: annotate_overrides
+
 enum DictEventMessage {
   getDictLists,
   getDictInfoLists,
@@ -35,10 +37,10 @@ abstract class DictEventResolveMain extends DictEvent
 abstract class DictEventMessagerMain extends DictEvent with DictEventMessager {}
 
 /// implements [DictEvent]
-abstract class DictEventDynamic {
+mixin DictEventDynamic {
+  Stream<TransferType<List<WordTable>>> getWordsDataDynamic(String id);
   dynamic getImageSourceDynamic(String url);
 }
-
 mixin DictEventResolve on Resolve, DictEvent implements DictEventDynamic {
   late final _dictEventResolveFuncList = List<DynamicCallback>.unmodifiable([
     _getDictLists_0,
@@ -81,7 +83,10 @@ mixin DictEventResolve on Resolve, DictEvent implements DictEventDynamic {
       getDictInfoLists(args);
   FutureOr<bool?> _getWordsState_2(args) => getWordsState(args);
   FutureOr<int?> _downloadDict_3(args) => downloadDict(args[0], args[1]);
-  Stream<List<WordTable>> _getWordsData_4(args) => getWordsData(args);
+  Stream<List<WordTable>> getWordsData(String id) =>
+      throw NopUseDynamicVersionExection("不要手动调用");
+  Stream<TransferType<List<WordTable>>> _getWordsData_4(args) =>
+      getWordsDataDynamic(args);
   FutureOr<List<DictTable>?> _getMainLists_5(args) => getMainLists();
   Stream<List<DictTable>> _watchDictLists_6(args) => watchDictLists();
   dynamic _getImageSource_7(args) => getImageSourceDynamic(args);
@@ -96,20 +101,20 @@ mixin DictEventResolve on Resolve, DictEvent implements DictEventDynamic {
 mixin DictEventMessager {
   SendEvent get sendEvent;
 
-  FutureOr<BookCategoryDataNormalBooks?> getDictLists() async {
+  FutureOr<BookCategoryDataNormalBooks?> getDictLists() {
     return sendEvent.sendMessage(DictEventMessage.getDictLists, null);
   }
 
   FutureOr<List<BookInfoDataNormalBooksInfo>?> getDictInfoLists(
-      List<String> body) async {
+      List<String> body) {
     return sendEvent.sendMessage(DictEventMessage.getDictInfoLists, body);
   }
 
-  FutureOr<bool?> getWordsState(String id) async {
+  FutureOr<bool?> getWordsState(String id) {
     return sendEvent.sendMessage(DictEventMessage.getWordsState, id);
   }
 
-  FutureOr<int?> downloadDict(String id, String url) async {
+  FutureOr<int?> downloadDict(String id, String url) {
     return sendEvent.sendMessage(DictEventMessage.downloadDict, [id, url]);
   }
 
@@ -117,7 +122,7 @@ mixin DictEventMessager {
     return sendEvent.sendMessageStream(DictEventMessage.getWordsData, id);
   }
 
-  FutureOr<List<DictTable>?> getMainLists() async {
+  FutureOr<List<DictTable>?> getMainLists() {
     return sendEvent.sendMessage(DictEventMessage.getMainLists, null);
   }
 
@@ -125,27 +130,27 @@ mixin DictEventMessager {
     return sendEvent.sendMessageStream(DictEventMessage.watchDictLists, null);
   }
 
-  dynamic getImageSourceDynamic(String url) async {
+  dynamic getImageSourceDynamic(String url) {
     return sendEvent.sendMessage(DictEventMessage.getImageSource, url);
   }
 
-  FutureOr<int?> addDict(DictTable dict) async {
+  FutureOr<int?> addDict(DictTable dict) {
     return sendEvent.sendMessage(DictEventMessage.addDict, dict);
   }
 
-  FutureOr<int?> updateDict(String dictId, DictTable dict) async {
+  FutureOr<int?> updateDict(String dictId, DictTable dict) {
     return sendEvent.sendMessage(DictEventMessage.updateDict, [dictId, dict]);
   }
 
-  FutureOr<String?> getVoicePath(String query) async {
+  FutureOr<String?> getVoicePath(String query) {
     return sendEvent.sendMessage(DictEventMessage.getVoicePath, query);
   }
 
-  FutureOr<void> openVoiceHive(bool open) async {
+  FutureOr<void> openVoiceHive(bool open) {
     return sendEvent.sendMessage(DictEventMessage.openVoiceHive, open);
   }
 
-  FutureOr<WordTable?> getWord(String headWord) async {
+  FutureOr<WordTable?> getWord(String headWord) {
     return sendEvent.sendMessage(DictEventMessage.getWord, headWord);
   }
 }

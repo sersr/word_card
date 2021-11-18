@@ -8,15 +8,18 @@ import 'package:archive/archive.dart';
 import 'package:dio/dio.dart';
 import 'package:file/local.dart';
 import 'package:hive/hive.dart';
-import 'package:nop_db/extensions/future_or_ext.dart';
+
+import 'package:nop_db/nop_db.dart';
+import 'package:utils/future_or_ext.dart';
 import 'package:path/path.dart';
-import 'package:useful_tools/common.dart';
+import 'package:useful_tools/useful_tools.dart';
 
 import '../api/api.dart';
 import '../data/data.dart';
 import '../database/dict_database.dart';
 import '../tools/hive_cache.dart';
 import 'event_base.dart';
+import 'isolate_transfer_type.dart';
 
 /// 实现类
 class DictEventIsolate extends DictEventResolveMain
@@ -40,6 +43,11 @@ class DictEventIsolate extends DictEventResolveMain
   /// [SendEventMixin] 要使用的 SendPort
   @override
   final SendPort? sp;
+
+  @override
+  Stream<TransferType<List<WordTable>>> getWordsDataDynamic(String id) {
+    return _getWordsData(id);
+  }
 }
 
 mixin NetMixin on DictEvent, DatabaseMixin, DictEventDynamic {
@@ -274,28 +282,28 @@ mixin DatabaseMixin on DictEvent {
     return update.go;
   }
 
-  /// TODO: 实现懒加载
-  @override
-  Stream<List<WordTable>> getWordsData(String id) {
-    final stream = StreamController<List<WordTable>>();
+  Stream<WordTableTransferType> _getWordsData(String id) {
+    final stream = StreamController<WordTableTransferType>();
     Timer.run(() async {
       final stop = Stopwatch()..start();
       try {
         final query = db.wordTable.query
-          ..index.notIndexed
+          // ..index.notIndexed
           ..select.all
           ..where.bookId.equalTo(id);
         Log.i(query);
         final prepare = query.prepare;
-        final data = await prepare.goToTable;
+        final data = await prepare.go;
         await prepare.dispose();
 
         final max = data.length;
         for (var i = 0; i < max;) {
           final end = math.min(i + 100, max);
-          stream.add(data.sublist(i, end));
+          stream.add(WordTableTransferType(data.sublist(i, end)));
           i = end;
         }
+      }catch(e){
+        Log.e(e);
       } finally {
         stream.close();
         Log.i('done: ${stop.elapsedMicroseconds / 1000} ms', onlyDebug: false);
@@ -303,6 +311,35 @@ mixin DatabaseMixin on DictEvent {
     });
     return stream.stream;
   }
+
+  // @override
+  // Stream<List<WordTable>> getWordsData(String id) {
+  //   final stream = StreamController<List<WordTable>>();
+  //   Timer.run(() async {
+  //     final stop = Stopwatch()..start();
+  //     try {
+  //       final query = db.wordTable.query
+  //         ..index.notIndexed
+  //         ..select.all
+  //         ..where.bookId.equalTo(id);
+  //       Log.i(query);
+  //       final prepare = query.prepare;
+  //       final data = await prepare.goToTable;
+  //       await prepare.dispose();
+
+  //       final max = data.length;
+  //       for (var i = 0; i < max;) {
+  //         final end = math.min(i + 100, max);
+  //         stream.add(data.sublist(i, end));
+  //         i = end;
+  //       }
+  //     } finally {
+  //       stream.close();
+  //       Log.i('done: ${stop.elapsedMicroseconds / 1000} ms', onlyDebug: false);
+  //     }
+  //   });
+  //   return stream.stream;
+  // }
 
   FutureOr<List<WordTable>> _getWord(String headWord) {
     final query = db.wordTable.query.all

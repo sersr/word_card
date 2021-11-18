@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:hive/hive.dart';
-import 'package:useful_tools/common.dart';
+import 'package:useful_tools/useful_tools.dart';
 
 typedef CacheHiveRun = FutureOr<void> Function(CacheHive box);
 

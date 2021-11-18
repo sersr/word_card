@@ -5,7 +5,6 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:nop_db/nop_db.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:utils/utils.dart';
 
 import 'event.dart';
 import 'event_base.dart';
@@ -32,33 +31,6 @@ class Repository extends DictEventMessagerMain
     return newIsolate;
   }
 
-  /// [SendEventPortMixin]
-  // @override
-  // Future<SendPort> onDone(ReceivePort rcPort) async {
-  //   return await rcPort.first;
-  // }
-
-  /// [SendEventMixin]
-  @override
-  Future<SendPort> onDone(ReceivePort rcPort) async {
-    final completer = Completer<SendPort>();
-    listen(completer, rcPort);
-    return completer.future;
-  }
-
-  void listen(Completer<SendPort>? completer, ReceivePort rcPort) {
-    rcPort.listen((message) {
-      if (add(message)) return;
-      if (message is SendPort) {
-        if (completer != null) {
-          completer!.complete(message);
-          completer = null;
-          return;
-        }
-      }
-      Log.w('error: $message', onlyDebug: false);
-    });
-  }
 
   /// 网络图片
   @override

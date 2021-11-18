@@ -16,14 +16,16 @@ class WordCardProvider extends StatelessWidget {
     Key? key,
     required this.id,
     required this.currentIndex,
+    required this.max,
   }) : super(key: key);
   final String id;
   final int currentIndex;
+  final int max;
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) => WordCardNotifier(context.read()),
-      child: _WordCardMain(id: id, currentIndex: currentIndex),
+      child: _WordCardMain(id: id, currentIndex: currentIndex, max: max),
     );
   }
 }
@@ -33,9 +35,11 @@ class _WordCardMain extends StatefulWidget {
     Key? key,
     required this.id,
     required this.currentIndex,
+    required this.max,
   }) : super(key: key);
   final String id;
   final int currentIndex;
+  final int max;
   @override
   State<_WordCardMain> createState() => _WordCardMainState();
 }
@@ -74,23 +78,10 @@ class _WordCardMainState extends State<_WordCardMain> {
               ),
             ),
             Expanded(
-                child: AnimatedBuilder(
-              animation: wordCardNotifier,
-              builder: (context, _) {
-                final data = wordCardNotifier.data;
-                if (data == null) {
-                  return loadingIndicator();
-                } else if (data.isEmpty) {
-                  return reloadBotton(() {
-                    wordCardNotifier.loadData(widget.id);
-                  });
-                }
-                return WordCard(
-                  words: data,
-                  currentIndex: widget.currentIndex,
-                  dictId: widget.id,
-                );
-              },
+                child: WordCard(
+              max: widget.max,
+              currentIndex: widget.currentIndex,
+              dictId: widget.id,
             ))
           ],
         ),
@@ -102,11 +93,11 @@ class _WordCardMainState extends State<_WordCardMain> {
 class WordCard extends StatefulWidget {
   const WordCard(
       {Key? key,
-      required this.words,
+      required this.max,
       required this.currentIndex,
       required this.dictId})
       : super(key: key);
-  final List<WordTable> words;
+  final int max;
   final int currentIndex;
   final String dictId;
   @override
@@ -411,12 +402,21 @@ class _WordCardState extends State<WordCard> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<WordCardNotifier>();
     final page = PageView.builder(
         controller: controller,
-        itemCount: widget.words.length,
+        itemCount: widget.max,
         allowImplicitScrolling: true,
         itemBuilder: (context, index) {
-          final data = widget.words[index];
+          final success = notifier.getCurrentState(index);
+          if (!success) {
+            return loadingIndicator();
+          }
+          final words = notifier.data;
+          if (index > words.length - 1) {
+            return reloadBotton(() => notifier.loadData(widget.dictId));
+          }
+          final data = words[index];
           final content = data.content;
           final trans = content?.content?.trans;
           final sentence = content?.content?.sentence;
@@ -459,6 +459,7 @@ class _WordCardState extends State<WordCard> {
                 ),
               ));
         });
+
     return Stack(
       children: [
         page,
@@ -503,7 +504,7 @@ class _WordCardState extends State<WordCard> {
                 return ProgressPage(
                   dictId: widget.dictId,
                   initValue: widget.currentIndex,
-                  max: widget.words.length,
+                  max: widget.max,
                   controller: controller,
                 );
               },

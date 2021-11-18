@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:nop_db/nop_db.dart';
 import 'package:provider/provider.dart';
 import 'package:useful_tools/useful_tools.dart';
 import 'dart:math' as math;
@@ -16,7 +17,8 @@ class HomeApp extends StatefulWidget {
   _HomeAppState createState() => _HomeAppState();
 }
 
-class _HomeAppState extends State<HomeApp> with WidgetsBindingObserver {
+class _HomeAppState extends State<HomeApp>
+    with WidgetsBindingObserver, IsolateAutoInitAndCloseMixin {
   late HomeListNotifier provider;
   final scrollController = ScrollController();
   bool first = true;
@@ -43,26 +45,22 @@ class _HomeAppState extends State<HomeApp> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  var inApp = true;
+  @override
+  SendIsolateMixin get isolateHandle => provider.repository;
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    inApp = state.index <= AppLifecycleState.inactive.index;
-    Log.w('state: $state | $inApp', onlyDebug: false);
-    if (mounted) {
-      final repository = provider.repository;
-      if (state == AppLifecycleState.resumed) {
-        repository.init();
-      }
-    }
+    closeIsolateState = state.index >= AppLifecycleState.paused.index;
+    initIsolateState = mounted && identical(state, AppLifecycleState.resumed);
+    Log.w('state: $state | close: $closeIsolateState', onlyDebug: false);
+    onInitIsolate();
   }
 
   @override
   void didHaveMemoryPressure() {
     super.didHaveMemoryPressure();
-    if (mounted && !inApp) {
-      provider.repository.close();
-    }
+    onCloseIsolate();
   }
 
   @override
@@ -122,11 +120,16 @@ class _HomeAppState extends State<HomeApp> with WidgetsBindingObserver {
                           onTap: () {
                             final id = item.dictId;
                             final currentIndex = item.wordIndex;
-                            if (id != null && currentIndex != null) {
+                            final max = item.dataIndex?.length;
+                            if (id != null &&
+                                currentIndex != null &&
+                                max != null) {
                               Navigator.push(context,
                                   MaterialPageRoute(builder: (context) {
                                 return WordCardProvider(
-                                    id: id, currentIndex: currentIndex);
+                                    id: id,
+                                    currentIndex: currentIndex,
+                                    max: max);
                               }));
                             }
                           },

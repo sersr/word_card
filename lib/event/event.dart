@@ -1,6 +1,6 @@
 import 'dart:isolate';
 
-import 'package:useful_tools/common.dart';
+import 'package:useful_tools/useful_tools.dart';
 
 import 'event_mixin.dart';
 

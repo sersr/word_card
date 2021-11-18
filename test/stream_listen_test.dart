@@ -4,7 +4,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
-import 'package:useful_tools/common.dart';
+import 'package:useful_tools/useful_tools.dart';
 
 void main() async {
   test('listen close', () async {
